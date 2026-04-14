@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduConnect — Gestion Scolaire</title>
+<!--
+  ╔══════════════════════════════════════════════════════════╗
+  ║  EduConnect — Plateforme de gestion scolaire             ║
+  ║  Déploiement GitHub Pages :                              ║
+  ║  1. Créez un repo GitHub                                 ║
+  ║  2. Uploadez ce fichier sous le nom "index.html"         ║
+  ║  3. Settings → Pages → Source: main / root               ║
+  ║  4. Votre site sera accessible sur :                     ║
+  ║     https://[votre-pseudo].github.io/[votre-repo]/       ║
+  ║                                                          ║
+  ║  ⚠️  Les données sont stockées dans le navigateur        ║
+  ║     (IndexedDB). Chaque utilisateur a ses propres        ║
+  ║     données locales — pas de serveur central.            ║
+  ╚══════════════════════════════════════════════════════════╝
+-->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F0F2F7;--surface:#FFF;--surface2:#F7F8FC;--border:#E3E6EF;
+  --accent:#2563EB;--accent2:#1E40AF;--accent-bg:#EFF6FF;
+  --green:#16A34A;--green-bg:#F0FDF4;--red:#DC2626;--red-bg:#FEF2F2;
+  --yellow:#D97706;--yellow-bg:#FFFBEB;--purple:#7C3AED;--purple-bg:#F5F3FF;
+  --rose:#BE123C;--rose-bg:#FFE4E6;--teal:#0D9488;--teal-bg:#F0FDFA;
+  --text:#111827;--text2:#6B7280;--text3:#9CA3AF;
+  --radius:12px;--radius-sm:8px;
+  --shadow-lg:0 8px 32px rgba(0,0,0,.10);
+  --sidebar-w:260px;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+button{font-family:var(--font);cursor:pointer;border:none}
+input,textarea,select{font-family:var(--font)}
+
+/* AUTH */
+#auth-screen{display:none;align-items:center;justify-content:center;min-height:100vh;
+  background:linear-gradient(135deg,#1E3A8A 0%,#1D4ED8 50%,#2563EB 100%);position:relative;overflow:hidden}
+#auth-screen::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 20% 80%,rgba(99,102,241,.3) 0%,transparent 60%),
+             radial-gradient(ellipse 60% 80% at 80% 20%,rgba(14,165,233,.2) 0%,transparent 60%)}
+.auth-grid{position:absolute;inset:0;opacity:.06;
+  background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:40px 40px}
+.auth-card{background:rgba(255,255,255,.97);border-radius:20px;padding:40px 40px 32px;
+  width:500px;max-width:calc(100vw - 32px);box-shadow:0 24px 80px rgba(0,0,0,.3);
+  position:relative;z-index:1;max-height:95vh;overflow-y:auto}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.auth-logo-icon{width:38px;height:38px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:18px}
+.auth-logo-text{font-size:20px;font-weight:700}.auth-logo-text span{color:var(--accent)}
+.auth-tagline{font-size:11.5px;color:var(--text3);margin-bottom:24px;letter-spacing:.02em}
+.auth-field{margin-bottom:14px}
+.auth-field label{display:block;font-size:12.5px;font-weight:500;color:var(--text2);margin-bottom:5px}
+.auth-field input{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13.5px;color:var(--text);outline:none;background:var(--surface2);transition:border-color .15s,box-shadow .15s}
+.auth-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1);background:white}
+.auth-btn{width:100%;padding:11px;background:var(--accent);color:white;border-radius:var(--radius-sm);font-size:14px;font-weight:600;transition:background .15s,transform .1s;margin-top:6px}
+.auth-btn:hover{background:var(--accent2);transform:translateY(-1px)}.auth-btn:active{transform:translateY(0)}
+.auth-error{background:var(--red-bg);border:1px solid #FECACA;color:var(--red);padding:9px 13px;border-radius:var(--radius-sm);font-size:12.5px;margin-bottom:14px;display:none}
+.auth-info{margin-top:14px;padding:11px 13px;background:#F0FDF4;border-radius:var(--radius-sm);border:1px solid #BBF7D0;font-size:11.5px;color:#166534;text-align:center;line-height:1.6}
+/* Accounts table on auth */
+.acc-section{margin-top:20px;padding-top:18px;border-top:1px solid var(--border)}
+.acc-section-title{font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.acc-table{width:100%;border-collapse:collapse;font-size:12px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.acc-table thead th{padding:7px 10px;text-align:left;font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;background:var(--surface2);border-bottom:1px solid var(--border)}
+.acc-table tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+.acc-table tbody tr:last-child{border-bottom:none}
+.acc-table tbody td{padding:7px 10px;vertical-align:middle}
+.acc-login{font-family:var(--mono);font-size:11px;background:var(--surface2);padding:2px 5px;border-radius:3px;border:1px solid var(--border)}
+.acc-pass{font-family:var(--mono);font-size:11px;color:var(--text2)}
+
+/* APP */
+#app{display:none;height:100vh;overflow:hidden}
+.layout{display:flex;height:100vh}
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sidebar-header{padding:18px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sidebar-logo{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:15px;flex-shrink:0}
+.sidebar-brand{font-size:15px;font-weight:700}.sidebar-brand span{color:var(--accent)}
+.user-card{margin:12px 12px 8px;padding:11px 13px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.user-card-name{font-size:13px;font-weight:600}
+.user-card-role{font-size:11px;color:var(--text2);margin-top:2px}
+.user-card-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;margin-top:5px}
+.nav-section{padding:5px 9px 3px}
+.nav-section-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:0 5px;margin-bottom:2px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:var(--radius-sm);cursor:pointer;transition:background .1s;color:var(--text2);font-size:13px;font-weight:500}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-bg);color:var(--accent)}
+.nav-item .icon{font-size:15px;width:19px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px}
+.sidebar-footer{margin-top:auto;padding:12px;border-top:1px solid var(--border)}
+.logout-btn{width:100%;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:12.5px;font-weight:500;transition:background .1s,color .1s}
+.logout-btn:hover{background:var(--red-bg);color:var(--red);border-color:#FECACA}
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.page{display:none;padding:26px 30px;max-width:1200px}
+.page.active{display:block;animation:fadeIn .18s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.page-header{margin-bottom:22px}
+.page-title{font-size:21px;font-weight:700}
+.page-subtitle{font-size:13px;color:var(--text2);margin-top:3px}
+
+/* CARDS */
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border)}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13.5px;font-weight:600}
+.card-body{padding:18px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:18px;display:flex;align-items:flex-start;gap:12px}
+.stat-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.stat-value{font-size:24px;font-weight:700;line-height:1}
+.stat-label{font-size:12px;color:var(--text2);margin-top:3px}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{padding:9px 13px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;background:var(--surface2);border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+tbody td{padding:10px 13px;vertical-align:middle}
+.td-bold{font-weight:600}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.badge-blue{background:var(--accent-bg);color:var(--accent)}
+.badge-purple{background:var(--purple-bg);color:var(--purple)}
+.badge-rose{background:var(--rose-bg);color:var(--rose)}
+.badge-teal{background:var(--teal-bg);color:var(--teal)}
+.avg-chip{display:inline-flex;align-items:center;justify-content:center;width:38px;height:26px;border-radius:5px;font-weight:700;font-size:12.5px}
+.avg-high{background:var(--green-bg);color:var(--green)}
+.avg-mid{background:var(--yellow-bg);color:var(--yellow)}
+.avg-low{background:var(--red-bg);color:var(--red)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:500;transition:.15s}
+.btn-primary{background:var(--accent);color:white}.btn-primary:hover{background:var(--accent2)}
+.btn-outline{background:white;color:var(--text);border:1.5px solid var(--border)}.btn-outline:hover{background:var(--surface2)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1.5px solid #FECACA}.btn-danger:hover{background:#FEE2E2}
+.btn-rose{background:var(--rose-bg);color:var(--rose);border:1.5px solid #FECDD3}.btn-rose:hover{background:#FFD1D9}
+.btn-teal{background:var(--teal-bg);color:var(--teal);border:1.5px solid #99F6E4}.btn-teal:hover{background:#CCFBF1}
+.btn-sm{padding:4px 9px;font-size:11.5px}
+
+/* FORM */
+.form-grid{display:grid;gap:13px}
+.form-grid-2{grid-template-columns:1fr 1fr}
+.form-group label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px}
+.form-control{width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text);background:white;outline:none;transition:border-color .15s,box-shadow .15s}
+.form-control:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+select.form-control{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;appearance:none}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:white;border-radius:14px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:slideModal .18s ease}
+@keyframes slideModal{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:700}
+.modal-close{width:28px;height:28px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:15px;color:var(--text2)}
+.modal-close:hover{background:var(--red-bg);color:var(--red)}
+.modal-body{padding:18px 22px}
+.modal-footer{padding:12px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+/* EDT */
+.edt-grid{display:grid;grid-template-columns:58px repeat(5,1fr);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.edt-header{padding:9px 6px;text-align:center;font-size:11.5px;font-weight:600;background:var(--surface2);border-bottom:1px solid var(--border);border-right:1px solid var(--border);color:var(--text2)}
+.edt-time{padding:0 4px;text-align:center;font-size:10px;color:var(--text3);font-family:var(--mono);border-right:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;background:var(--surface2);height:62px}
+.edt-cell{height:62px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);position:relative;padding:3px;transition:background .1s}
+.edt-cell.clickable:hover{background:var(--accent-bg);cursor:pointer}
+.edt-cell.editable-empty:hover{background:#F0FDF4;cursor:pointer}
+.edt-lesson{height:100%;border-radius:5px;padding:4px 6px;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.edt-lesson-name{font-size:10.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.edt-lesson-room{font-size:9.5px;opacity:.75}
+
+/* MSG */
+.msg-list{display:flex;flex-direction:column;gap:1px}
+.msg-item{display:flex;align-items:flex-start;gap:11px;padding:11px 14px;border-radius:var(--radius-sm);cursor:pointer;transition:background .1s}
+.msg-item:hover{background:var(--surface2)}
+.msg-item.unread{background:var(--accent-bg)}
+.msg-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.msg-from{font-size:12.5px;font-weight:600}
+.msg-item.unread .msg-from::after{content:'';display:inline-block;width:6px;height:6px;background:var(--accent);border-radius:50%;margin-left:6px;vertical-align:middle}
+.msg-subject{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg-date{font-size:11px;color:var(--text3);white-space:nowrap}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;z-index:999;background:#111827;color:white;padding:11px 16px;border-radius:9px;font-size:13px;box-shadow:var(--shadow-lg);display:none;align-items:center;gap:7px}
+.toast.show{display:flex}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:#D1D5DB}
+@media(max-width:768px){.sidebar{width:200px}:root{--sidebar-w:200px}.page{padding:18px 14px}.grid-4{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-grid"></div>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🎓</div>
+      <div class="auth-logo-text">Edu<span>Connect</span></div>
+    </div>
+    <p class="auth-tagline">Plateforme numérique de gestion scolaire</p>
+    <div id="auth-error" class="auth-error">Identifiants incorrects. Veuillez réessayer.</div>
+    <div class="auth-field"><label>Identifiant</label><input type="text" id="login-user" placeholder="votre.identifiant" autocomplete="username"></div>
+    <div class="auth-field"><label>Mot de passe</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="auth-btn" onclick="doLogin()">Se connecter →</button>
+
+    <div class="acc-section">
+      <div class="acc-section-title">📋 Comptes disponibles</div>
+      <table class="acc-table">
+        <thead><tr><th>Rôle</th><th>Nom</th><th>Identifiant</th><th>Mot de passe</th></tr></thead>
+        <tbody id="acc-tbody"></tbody>
+      </table>
+    </div>
+    <div class="auth-info">🌐 Compatible GitHub Pages · Données stockées localement dans votre navigateur (IndexedDB) · Accessible depuis n'importe quel appareil</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">🎓</div>
+        <div class="sidebar-brand">Edu<span>Connect</span></div>
+      </div>
+      <div class="user-card">
+        <div class="user-card-name" id="sb-name">—</div>
+        <div class="user-card-role" id="sb-class">—</div>
+        <span class="user-card-badge" id="sb-badge"></span>
+      </div>
+      <nav id="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="doLogout()">⬅ Se déconnecter</button>
+      </div>
+    </aside>
+    <main class="main" id="main-content"></main>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toast-icon">✓</span><span id="toast-msg"></span></div>
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)"><div class="modal" id="modal-box"></div></div>
+
+<script>
+/* ─── SHA-256 ─── */
+async function sha256(m){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(m));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+
+/* ─── IndexedDB ─── */
+const DB=(()=>{
+  let db;
+  const STORES=['users','classes','matieres','notes','absences','messages','emploiDuTemps','punitions','settings'];
+  function open(){return new Promise((res,rej)=>{
+    const req=indexedDB.open('EduConnectV4',1);
+    req.onupgradeneeded=e=>{const d=e.target.result;
+      STORES.forEach(s=>{if(!d.objectStoreNames.contains(s))
+        d.createObjectStore(s,s==='settings'?{keyPath:'key'}:{keyPath:'id',autoIncrement:true})});};
+    req.onsuccess=e=>{db=e.target.result;res()};req.onerror=e=>rej(e.target.error);});}
+  const tx=(s,m='readonly')=>db.transaction(s,m).objectStore(s);
+  const getAll=s=>new Promise((r,j)=>{const q=tx(s).getAll();q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)});
+  const put=(s,o)=>new Promise((r,j)=>{const q=tx(s,'readwrite').put(o);q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)});
+  const del=(s,k)=>new Promise((r,j)=>{const q=tx(s,'readwrite').delete(k);q.onsuccess=()=>r();q.onerror=()=>j(q.error)});
+  const getSetting=k=>new Promise((r,j)=>{const q=tx('settings').get(k);q.onsuccess=()=>r(q.result?.value);q.onerror=()=>j(q.error)});
+  const setSetting=(k,v)=>put('settings',{key:k,value:v});
+  return{open,getAll,put,del,getSetting,setSetting};
+})();
+
+/* ─── SEED ─── */
+const SEED_PASS='password123';
+const SEED_USERS=[
+  {login:'admin',     nom:'Dupont',  prenom:'Marc',   role:'admin',     classeId:null,color:'#7C3AED'},
+  {login:'proviseur', nom:'Laurent', prenom:'Claire', role:'proviseur', classeId:null,color:'#0D9488'},
+  {login:'prof.math', nom:'Bernard', prenom:'Sophie', role:'prof',      classeId:null,color:'#2563EB'},
+  {login:'prof.fr',   nom:'Martin',  prenom:'Jean',   role:'prof',      classeId:null,color:'#0891B2'},
+  {login:'eleve1',    nom:'Leblanc', prenom:'Alice',  role:'eleve',     classeId:1,   color:'#16A34A'},
+  {login:'eleve2',    nom:'Morel',   prenom:'Thomas', role:'eleve',     classeId:1,   color:'#D97706'},
+  {login:'eleve3',    nom:'Garcia',  prenom:'Emma',   role:'eleve',     classeId:2,   color:'#DC2626'},
+];
+const CLASSES=[{id:1,nom:'3ème A',niveau:'3ème',annee:'2024-2025'},{id:2,nom:'3ème B',niveau:'3ème',annee:'2024-2025'}];
+const MATIERES=[
+  {id:1,nom:'Mathématiques',code:'MATH',couleur:'#2563EB'},
+  {id:2,nom:'Français',     code:'FR',  couleur:'#7C3AED'},
+  {id:3,nom:'Histoire-Géo', code:'HG',  couleur:'#D97706'},
+  {id:4,nom:'Physique-Chim',code:'PC',  couleur:'#16A34A'},
+  {id:5,nom:'Anglais',      code:'ANG', couleur:'#0891B2'},
+];
+const EDT_SEED=[
+  {jour:0,slot:0,classeId:1,matiereId:1,profLogin:'prof.math',salle:'S201'},
+  {jour:0,slot:1,classeId:1,matiereId:2,profLogin:'prof.fr',  salle:'S105'},
+  {jour:0,slot:3,classeId:1,matiereId:3,profLogin:'prof.fr',  salle:'S110'},
+  {jour:1,slot:0,classeId:1,matiereId:4,profLogin:'prof.math',salle:'Labo'},
+  {jour:1,slot:2,classeId:1,matiereId:1,profLogin:'prof.math',salle:'S201'},
+  {jour:2,slot:1,classeId:1,matiereId:5,profLogin:'prof.fr',  salle:'S108'},
+  {jour:2,slot:3,classeId:1,matiereId:2,profLogin:'prof.fr',  salle:'S105'},
+  {jour:3,slot:0,classeId:1,matiereId:1,profLogin:'prof.math',salle:'S201'},
+  {jour:3,slot:2,classeId:1,matiereId:3,profLogin:'prof.fr',  salle:'S110'},
+  {jour:4,slot:1,classeId:1,matiereId:4,profLogin:'prof.math',salle:'Labo'},
+  {jour:4,slot:3,classeId:1,matiereId:5,profLogin:'prof.fr',  salle:'S108'},
+  {jour:0,slot:1,classeId:2,matiereId:1,profLogin:'prof.math',salle:'S202'},
+  {jour:1,slot:0,classeId:2,matiereId:2,profLogin:'prof.fr',  salle:'S106'},
+  {jour:2,slot:2,classeId:2,matiereId:3,profLogin:'prof.fr',  salle:'S111'},
+  {jour:3,slot:1,classeId:2,matiereId:4,profLogin:'prof.math',salle:'Labo'},
+  {jour:4,slot:0,classeId:2,matiereId:1,profLogin:'prof.math',salle:'S202'},
+];
+const PUNITION_TYPES=[
+  {val:'retenue',    label:'Retenue',               badge:'badge-yellow'},
+  {val:'exclusion',  label:'Exclusion temporaire',  badge:'badge-red'},
+  {val:'convocation',label:'Convocation parents',   badge:'badge-rose'},
+  {val:'avertis',    label:'Avertissement',          badge:'badge-blue'},
+  {val:'travail',    label:'Travail supplémentaire', badge:'badge-purple'},
+];
+const JOURS=['Lundi','Mardi','Mercredi','Jeudi','Vendredi'];
+const SLOTS=['08h00','09h00','10h00','11h00','12h00','13h00','14h00','15h00','16h00'];
+const ROLE_LABELS={admin:'Administrateur',proviseur:'Proviseur',prof:'Professeur',eleve:'Élève'};
+const ROLE_BADGE={admin:'badge-purple',proviseur:'badge-teal',prof:'badge-blue',eleve:'badge-green'};
+
+/* ─── STATE ─── */
+let U=null; // currentUser
+let users=[],classes=[],matieres=[],notes=[],absences=[],messages=[],edt=[],punitions=[];
+let msgUnread=0,edtClass=1;
+
+/* ─── INIT ─── */
+async function init(){
+  await DB.open();
+  if(!await DB.getSetting('seeded_v4'))await seed();
+  await reload();
+  const stored=sessionStorage.getItem('edu_u');
+  if(stored){const u=users.find(u=>u.login===stored);if(u){U=u;showApp();return;}}
+  buildAccTable();
+  document.getElementById('auth-screen').style.display='flex';
+  ['login-user','login-pass'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>e.key==='Enter'&&doLogin()));
+}
+
+async function seed(){
+  const h=await sha256(SEED_PASS);
+  for(const u of SEED_USERS)await DB.put('users',{...u,passwordHash:h});
+  for(const c of CLASSES) await DB.put('classes',c);
+  for(const m of MATIERES)await DB.put('matieres',m);
+  for(const e of EDT_SEED)await DB.put('emploiDuTemps',e);
+  const nData=[
+    {eleveLogin:'eleve1',matiereId:1,valeur:14.5,coef:2,date:'2025-01-15',prof:'prof.math',intitule:'DS1 Algèbre'},
+    {eleveLogin:'eleve1',matiereId:1,valeur:17,  coef:1,date:'2025-02-01',prof:'prof.math',intitule:'Interrogation'},
+    {eleveLogin:'eleve1',matiereId:2,valeur:12,  coef:2,date:'2025-01-20',prof:'prof.fr',  intitule:'Rédaction'},
+    {eleveLogin:'eleve1',matiereId:2,valeur:15.5,coef:1,date:'2025-02-10',prof:'prof.fr',  intitule:'Dictée'},
+    {eleveLogin:'eleve1',matiereId:3,valeur:11,  coef:2,date:'2025-01-25',prof:'prof.fr',  intitule:'DS Histoire'},
+    {eleveLogin:'eleve1',matiereId:4,valeur:16,  coef:2,date:'2025-02-05',prof:'prof.math',intitule:'TP Chimie'},
+    {eleveLogin:'eleve2',matiereId:1,valeur:9.5, coef:2,date:'2025-01-15',prof:'prof.math',intitule:'DS1 Algèbre'},
+    {eleveLogin:'eleve2',matiereId:2,valeur:13,  coef:2,date:'2025-01-20',prof:'prof.fr',  intitule:'Rédaction'},
+    {eleveLogin:'eleve3',matiereId:1,valeur:18,  coef:2,date:'2025-01-15',prof:'prof.math',intitule:'DS1 Algèbre'},
+    {eleveLogin:'eleve3',matiereId:2,valeur:16,  coef:2,date:'2025-01-20',prof:'prof.fr',  intitule:'Rédaction'},
+  ];
+  for(const n of nData)await DB.put('notes',n);
+  const aData=[
+    {eleveLogin:'eleve1',date:'2025-02-10',heure:'08h00',duree:2,justifie:true, motif:'Médecin', matiereId:1},
+    {eleveLogin:'eleve1',date:'2025-01-28',heure:'14h00',duree:1,justifie:false,motif:'',        matiereId:2},
+    {eleveLogin:'eleve2',date:'2025-02-05',heure:'10h00',duree:1,justifie:true, motif:'Famille', matiereId:3},
+    {eleveLogin:'eleve3',date:'2025-01-20',heure:'08h00',duree:2,justifie:false,motif:'',        matiereId:1},
+  ];
+  for(const a of aData)await DB.put('absences',a);
+  const mData=[
+    {de:'prof.math',a:'eleve1',sujet:'Félicitations DS1',corps:'Bonjour Alice, excellents résultats au DS1 !',date:'2025-02-12',lu:false},
+    {de:'admin',    a:'eleve1',sujet:'Réunion parents',  corps:'Réunion parents-professeurs le 15 mars à 18h.',date:'2025-02-08',lu:true},
+    {de:'proviseur',a:'eleve2',sujet:'Convocation',      corps:'Vous êtes convoqué à mon bureau vendredi 14 mars à 10h.',date:'2025-02-11',lu:false},
+    {de:'admin',    a:'prof.math',sujet:'Conseil de classe',corps:'Conseil de classe du 2ème trimestre fixé au 20 mars 17h.',date:'2025-02-10',lu:false},
+  ];
+  for(const m of mData)await DB.put('messages',m);
+  const pData=[
+    {eleveLogin:'eleve2',type:'retenue',  motif:'Bavardage répété',detail:'Samedi 15 mars 8h-10h',date:'2025-02-10',posePar:'proviseur',levee:false},
+    {eleveLogin:'eleve1',type:'avertis',  motif:'Retard non justifié',detail:'',date:'2025-01-28',posePar:'prof.math',levee:true},
+  ];
+  for(const p of pData)await DB.put('punitions',p);
+  await DB.setSetting('seeded_v4',true);
+}
+
+async function reload(){
+  users=await DB.getAll('users');classes=await DB.getAll('classes');matieres=await DB.getAll('matieres');
+  notes=await DB.getAll('notes');absences=await DB.getAll('absences');messages=await DB.getAll('messages');
+  edt=await DB.getAll('emploiDuTemps');punitions=await DB.getAll('punitions');
+}
+
+/* ─── AUTH ─── */
+function buildAccTable(){
+  const RC={admin:'var(--purple)',proviseur:'var(--teal)',prof:'var(--accent)',eleve:'var(--green)'};
+  const RB={admin:'var(--purple-bg)',proviseur:'var(--teal-bg)',prof:'var(--accent-bg)',eleve:'var(--green-bg)'};
+  document.getElementById('acc-tbody').innerHTML=SEED_USERS.map(u=>`<tr>
+    <td><span class="badge ${ROLE_BADGE[u.role]}">${ROLE_LABELS[u.role]}</span></td>
+    <td style="font-weight:600">${u.prenom} ${u.nom}</td>
+    <td><span class="acc-login">${u.login}</span></td>
+    <td><span class="acc-pass">${SEED_PASS}</span></td>
+  </tr>`).join('');
+}
+async function doLogin(){
+  const login=document.getElementById('login-user').value.trim(),pass=document.getElementById('login-pass').value;
+  const err=document.getElementById('auth-error');
+  if(!login||!pass){err.style.display='block';err.textContent='Veuillez saisir vos identifiants.';return;}
+  const h=await sha256(pass),u=users.find(u=>u.login===login&&u.passwordHash===h);
+  if(!u){err.style.display='block';err.textContent='Identifiants incorrects.';return;}
+  err.style.display='none';U=u;sessionStorage.setItem('edu_u',login);showApp();
+}
+function doLogout(){U=null;sessionStorage.removeItem('edu_u');document.getElementById('app').style.display='none';document.getElementById('auth-screen').style.display='flex';document.getElementById('login-user').value='';document.getElementById('login-pass').value='';}
+
+/* ─── NAV CONFIG ─── */
+const NAV={
+  admin:[
+    {s:'Principal'},{id:'dashboard',label:'Tableau de bord',icon:'📊'},{id:'messages',label:'Messagerie',icon:'✉️',badge:true},
+    {s:'Gestion'},{id:'users',label:'Utilisateurs',icon:'👥'},{id:'classes',label:'Classes',icon:'🏫'},{id:'matieres',label:'Matières',icon:'📚'},
+    {id:'notes_v',label:'Notes',icon:'📝'},{id:'absences_v',label:'Absences',icon:'📋'},{id:'punitions_v',label:'Punitions',icon:'⚠️'},{id:'edt_v',label:'Emploi du temps',icon:'📅'},
+  ],
+  proviseur:[
+    {s:'Principal'},{id:'dashboard',label:'Tableau de bord',icon:'📊'},{id:'messages',label:'Messagerie',icon:'✉️',badge:true},
+    {s:'Direction'},{id:'edt_edit',label:'Modifier les EDT',icon:'📅'},{id:'punitions_pv',label:'Punitions',icon:'⚠️'},{id:'absences_v',label:'Absences',icon:'📋'},{id:'notes_v',label:'Notes (lecture)',icon:'📝'},
+  ],
+  prof:[
+    {s:'Principal'},{id:'dashboard',label:'Tableau de bord',icon:'📊'},{id:'messages',label:'Messagerie',icon:'✉️',badge:true},
+    {s:'Enseignement'},{id:'saisie_notes',label:'Saisie des notes',icon:'📝'},{id:'saisie_abs',label:'Saisie des absences',icon:'📋'},{id:'edt_v',label:'Emploi du temps',icon:'📅'},
+  ],
+  eleve:[
+    {s:'Mon espace'},{id:'dashboard',label:'Tableau de bord',icon:'📊'},{id:'messages',label:'Messagerie',icon:'✉️',badge:true},
+    {id:'mes_notes',label:'Mes notes',icon:'📝'},{id:'mes_abs',label:'Mes absences',icon:'📋'},{id:'mes_pun',label:'Mes punitions',icon:'⚠️'},{id:'edt_v',label:'Emploi du temps',icon:'📅'},
+  ],
+};
+
+/* ─── SHOW APP ─── */
+function showApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  const RC={admin:'var(--purple)',proviseur:'var(--teal)',prof:'var(--accent)',eleve:'var(--green)'};
+  const RB={admin:'var(--purple-bg)',proviseur:'var(--teal-bg)',prof:'var(--accent-bg)',eleve:'var(--green-bg)'};
+  document.getElementById('sb-name').textContent=`${U.prenom} ${U.nom}`;
+  const cl=classes.find(c=>c.id===U.classeId);
+  document.getElementById('sb-class').textContent=cl?cl.nom:ROLE_LABELS[U.role];
+  const b=document.getElementById('sb-badge');b.textContent=ROLE_LABELS[U.role];b.style.cssText=`background:${RB[U.role]};color:${RC[U.role]}`;
+  msgUnread=messages.filter(m=>m.a===U.login&&!m.lu).length;
+  buildNav();buildPages();navigate('dashboard');
+}
+function buildNav(){
+  const items=NAV[U.role]||[];let h='';let open=false;
+  items.forEach(item=>{
+    if(item.s){if(open)h+='</div>';h+=`<div class="nav-section"><div class="nav-section-label">${item.s}</div>`;open=true;}
+    else{const nb=item.badge&&msgUnread>0?`<span class="nav-badge">${msgUnread}</span>`:'';
+      h+=`<div class="nav-item" id="nav-${item.id}" onclick="navigate('${item.id}')"><span class="icon">${item.icon}</span>${item.label}${nb}</div>`;}
+  });
+  if(open)h+='</div>';document.getElementById('sidebar-nav').innerHTML=h;
+}
+function buildPages(){
+  const PAGES={admin:['dashboard','messages','users','classes','matieres','notes_v','absences_v','punitions_v','edt_v'],
+    proviseur:['dashboard','messages','edt_edit','punitions_pv','absences_v','notes_v'],
+    prof:['dashboard','messages','saisie_notes','saisie_abs','edt_v'],
+    eleve:['dashboard','messages','mes_notes','mes_abs','mes_pun','edt_v']};
+  document.getElementById('main-content').innerHTML=(PAGES[U.role]||[]).map(id=>`<div class="page" id="pg-${id}"></div>`).join('');
+}
+function navigate(pid){
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  const ni=document.getElementById(`nav-${pid}`);if(ni)ni.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById(`pg-${pid}`);if(!pg)return;pg.classList.add('active');
+  const R={dashboard:pgDash,messages:pgMsg,users:pgUsers,classes:pgClasses,matieres:pgMatieres,
+    notes_v:pgNotesV,absences_v:pgAbsV,punitions_v:pgPunV,punitions_pv:pgPunPV,
+    edt_v:pgEDTV,edt_edit:pgEDTEdit,saisie_notes:pgSaisieNotes,saisie_abs:pgSaisieAbs,
+    mes_notes:pgMesNotes,mes_abs:pgMesAbs,mes_pun:pgMesPun};
+  if(R[pid])R[pid](pg);
+}
+
+/* ─── HELPERS ─── */
+const td=()=>new Date().toISOString().split('T')[0];
+function sc(icon,label,val,bg,color){return`<div class="stat-card"><div class="stat-icon" style="background:${bg};color:${color}">${icon}</div><div><div class="stat-value">${val}</div><div class="stat-label">${label}</div></div></div>`}
+function ac(v){if(v===null||v===undefined)return'—';const c=v>=14?'avg-high':v>=10?'avg-mid':'avg-low';return`<span class="avg-chip ${c}">${typeof v==='number'?v.toFixed(1):v}</span>`}
+function moy(ns){if(!ns.length)return null;let s=0,c=0;ns.forEach(n=>{s+=n.valeur*(n.coef||1);c+=(n.coef||1)});return c?s/c:null}
+const uName=login=>{const u=users.find(u=>u.login===login);return u?u.prenom+' '+u.nom:'?'};
+const matCode=id=>{const m=matieres.find(m=>m.id===id);return m?`<span class="badge badge-blue">${m.code}</span>`:'?'};
+const punBadge=type=>{const t=PUNITION_TYPES.find(t=>t.val===type)||{label:type,badge:'badge-blue'};return`<span class="badge ${t.badge}">${t.label}</span>`};
+
+/* ─── DASHBOARD ─── */
+function pgDash(el){
+  if(U.role==='admin')dashAdmin(el);
+  else if(U.role==='proviseur')dashProv(el);
+  else if(U.role==='prof')dashProf(el);
+  else dashEleve(el);
+}
+function dashAdmin(el){
+  el.innerHTML=`<div class="page-header"><div class="page-title">Tableau de bord</div><div class="page-subtitle">${new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div></div>
+  <div class="grid-4" style="margin-bottom:18px">
+    ${sc('👥','Élèves',users.filter(u=>u.role==='eleve').length,'var(--accent-bg)','var(--accent)')}
+    ${sc('👨‍🏫','Professeurs',users.filter(u=>u.role==='prof').length,'var(--purple-bg)','var(--purple)')}
+    ${sc('🏫','Classes',classes.length,'var(--green-bg)','var(--green)')}
+    ${sc('⚠️','Punitions actives',punitions.filter(p=>!p.levee).length,'var(--rose-bg)','var(--rose)')}
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-header"><span class="card-title">Absences récentes</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Élève</th><th>Date</th><th>Durée</th><th>Statut</th></tr></thead><tbody>
+    ${absences.slice(-5).reverse().map(a=>`<tr><td class="td-bold">${uName(a.eleveLogin)}</td><td>${a.date}</td><td>${a.duree}h</td><td><span class="badge ${a.justifie?'badge-green':'badge-red'}">${a.justifie?'Justifiée':'Non just.'}</span></td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Punitions actives</span><button class="btn btn-rose btn-sm" onclick="navigate('punitions_v')">Voir tout →</button></div>
+    <div class="table-wrap"><table><thead><tr><th>Élève</th><th>Type</th><th>Date</th></tr></thead><tbody>
+    ${punitions.filter(p=>!p.levee).slice(0,6).map(p=>`<tr><td class="td-bold">${uName(p.eleveLogin)}</td><td>${punBadge(p.type)}</td><td>${p.date}</td></tr>`).join('')}
+    </tbody></table></div></div>
+  </div>`;
+}
+function dashProv(el){
+  const act=punitions.filter(p=>!p.levee),nj=absences.filter(a=>!a.justifie);
+  el.innerHTML=`<div class="page-header"><div class="page-title">Bonjour, ${U.prenom} 👋</div><div class="page-subtitle">Proviseur — ${new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div></div>
+  <div class="grid-3" style="margin-bottom:18px">
+    ${sc('⚠️','Punitions actives',act.length,'var(--rose-bg)','var(--rose)')}
+    ${sc('📋','Absences non justifiées',nj.length,'var(--yellow-bg)','var(--yellow)')}
+    ${sc('👥','Élèves',users.filter(u=>u.role==='eleve').length,'var(--accent-bg)','var(--accent)')}
+  </div>
+  <div class="card"><div class="card-header"><span class="card-title">Punitions en cours</span><button class="btn btn-rose btn-sm" onclick="navigate('punitions_pv')">Gérer →</button></div>
+  <div class="table-wrap"><table><thead><tr><th>Élève</th><th>Type</th><th>Motif</th><th>Date</th><th>Action</th></tr></thead><tbody>
+  ${act.slice(0,8).map(p=>`<tr><td class="td-bold">${uName(p.eleveLogin)}</td><td>${punBadge(p.type)}</td><td style="color:var(--text2);font-size:12px">${p.motif||'—'}</td><td>${p.date}</td><td><button class="btn btn-teal btn-sm" onclick="leverPun(${p.id},'pv')">Lever</button></td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function dashProf(el){
+  const mn=notes.filter(n=>n.prof===U.login);
+  el.innerHTML=`<div class="page-header"><div class="page-title">Bonjour, ${U.prenom} 👋</div></div>
+  <div class="grid-3" style="margin-bottom:18px">
+    ${sc('📝','Notes saisies',mn.length,'var(--accent-bg)','var(--accent)')}
+    ${sc('📋','Absences signalées',absences.length,'var(--yellow-bg)','var(--yellow)')}
+    ${sc('👥','Élèves',users.filter(u=>u.role==='eleve').length,'var(--green-bg)','var(--green)')}
+  </div>
+  <div class="card"><div class="card-header"><span class="card-title">Dernières notes saisies</span></div>
+  <div class="table-wrap"><table><thead><tr><th>Élève</th><th>Matière</th><th>Intitulé</th><th>Note</th><th>Date</th></tr></thead><tbody>
+  ${mn.slice(-8).reverse().map(n=>`<tr><td class="td-bold">${uName(n.eleveLogin)}</td><td>${matCode(n.matiereId)}</td><td>${n.intitule||''}</td><td>${ac(n.valeur)}</td><td style="color:var(--text2)">${n.date}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function dashEleve(el){
+  const mn=notes.filter(n=>n.eleveLogin===U.login),ma=absences.filter(a=>a.eleveLogin===U.login);
+  const mp=punitions.filter(p=>p.eleveLogin===U.login&&!p.levee),unr=messages.filter(m=>m.a===U.login&&!m.lu).length;
+  const m=moy(mn),cl=classes.find(c=>c.id===U.classeId);
+  el.innerHTML=`<div class="page-header"><div class="page-title">Bonjour, ${U.prenom} 👋</div><div class="page-subtitle">${cl?cl.nom+' — ':''} ${new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div></div>
+  <div class="grid-4" style="margin-bottom:18px">
+    ${sc('📊','Moyenne générale',m!==null?m.toFixed(2)+'/20':'—','var(--accent-bg)','var(--accent)')}
+    ${sc('📝','Notes',mn.length,'var(--purple-bg)','var(--purple)')}
+    ${sc('📋','Absences',ma.length,'var(--yellow-bg)','var(--yellow)')}
+    ${sc('⚠️','Punitions actives',mp.length,mp.length>0?'var(--rose-bg)':'var(--green-bg)',mp.length>0?'var(--rose)':'var(--green)')}
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-header"><span class="card-title">Dernières notes</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Matière</th><th>Intitulé</th><th>Note</th></tr></thead><tbody>
+    ${mn.slice(-5).reverse().map(n=>`<tr><td>${matCode(n.matiereId)}</td><td>${n.intitule||''}</td><td>${ac(n.valeur)}</td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Moyennes par matière</span></div><div class="card-body">
+    ${matieres.map(mat=>{const ns=mn.filter(n=>n.matiereId===mat.id);if(!ns.length)return'';return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="font-size:13px;flex:1;font-weight:500">${mat.nom}</span>${ac(moy(ns))}</div>`;}).join('')}
+    </div></div>
+  </div>`;
+}
+
+/* ─── MESSAGERIE ─── */
+function pgMsg(el){
+  const recu=messages.filter(m=>m.a===U.login).sort((a,b)=>b.date.localeCompare(a.date));
+  el.innerHTML=`<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between"><div><div class="page-title">Messagerie</div><div class="page-subtitle">${recu.filter(m=>!m.lu).length} non lu(s)</div></div><button class="btn btn-primary" onclick="openNewMsg()">✏️ Nouveau</button></div></div>
+  <div class="grid-2" style="align-items:start">
+    <div class="card"><div class="card-header"><span class="card-title">Boîte de réception</span></div>
+    <div class="msg-list">
+    ${recu.length?recu.map(m=>{const s=users.find(u=>u.login===m.de);const ini=s?(s.prenom[0]+s.nom[0]).toUpperCase():'?';
+      return`<div class="msg-item ${m.lu?'':'unread'}" onclick="openMsg(${m.id})">
+        <div class="msg-avatar" style="background:${s?.color||'#6B7280'}22;color:${s?.color||'#6B7280'}">${ini}</div>
+        <div style="flex:1;min-width:0"><div class="msg-from">${s?s.prenom+' '+s.nom:'?'}</div><div class="msg-subject">${m.sujet}</div></div>
+        <div class="msg-date">${m.date}</div></div>`;}).join(''):'<div style="padding:20px;text-align:center;color:var(--text3)">Aucun message</div>'}
+    </div></div>
+    <div class="card" id="msg-detail"><div style="padding:40px;text-align:center;color:var(--text3)"><div style="font-size:32px;margin-bottom:8px">✉️</div>Sélectionnez un message</div></div>
+  </div>`;
+}
+async function openMsg(id){
+  const m=messages.find(m=>m.id===id);if(!m)return;
+  if(!m.lu&&m.a===U.login){m.lu=true;await DB.put('messages',m);msgUnread=Math.max(0,msgUnread-1);const b=document.querySelector('#nav-messages .nav-badge');if(b){if(msgUnread>0)b.textContent=msgUnread;else b.remove();}}
+  const s=users.find(u=>u.login===m.de);const ini=s?(s.prenom[0]+s.nom[0]).toUpperCase():'?';
+  document.getElementById('msg-detail').innerHTML=`<div class="card-header"><span class="card-title">${m.sujet}</span><span style="font-size:11px;color:var(--text3)">${m.date}</span></div>
+  <div class="card-body"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+    <div class="msg-avatar" style="background:${s?.color||'#6B7280'}22;color:${s?.color||'#6B7280'}">${ini}</div>
+    <div><div style="font-weight:600;font-size:13px">${s?s.prenom+' '+s.nom:'?'}</div><div style="font-size:11.5px;color:var(--text2)">→ ${U.prenom} ${U.nom}</div></div>
+  </div><p style="font-size:13.5px;line-height:1.75">${m.corps}</p></div>`;
+}
+function openNewMsg(){
+  const opts=users.filter(u=>u.login!==U.login).map(u=>`<option value="${u.login}">${u.prenom} ${u.nom} (${ROLE_LABELS[u.role]})</option>`).join('');
+  showModal('Nouveau message',`<div class="form-grid">
+    <div class="form-group"><label>Destinataire</label><select id="mg-to" class="form-control">${opts}</select></div>
+    <div class="form-group"><label>Sujet</label><input id="mg-sub" class="form-control" placeholder="Objet..."></div>
+    <div class="form-group"><label>Message</label><textarea id="mg-body" class="form-control" rows="5" style="resize:vertical"></textarea></div>
+  </div>`,[{label:'Envoyer',primary:true,action:sendMsg}]);
+}
+async function sendMsg(){
+  const to=document.getElementById('mg-to').value,sub=document.getElementById('mg-sub').value.trim(),body=document.getElementById('mg-body').value.trim();
+  if(!sub||!body){toast('Remplissez tous les champs','⚠️');return;}
+  await DB.put('messages',{de:U.login,a:to,sujet:sub,corps:body,date:td(),lu:false});
+  await reload();closeModal();navigate('messages');toast('Message envoyé','✉️');
+}
+
+/* ─── UTILISATEURS ─── */
+function pgUsers(el){
+  el.innerHTML=`<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between"><div><div class="page-title">Utilisateurs</div><div class="page-subtitle">${users.length} comptes</div></div><button class="btn btn-primary" onclick="openAddUser()">+ Ajouter</button></div></div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Prénom Nom</th><th>Identifiant</th><th>Rôle</th><th>Classe</th><th>Actions</th></tr></thead><tbody>
+  ${users.map(u=>{const cl=classes.find(c=>c.id===u.classeId);return`<tr>
+    <td class="td-bold">${u.prenom} ${u.nom}</td>
+    <td><span class="acc-login">${u.login}</span></td>
+    <td><span class="badge ${ROLE_BADGE[u.role]}">${ROLE_LABELS[u.role]}</span></td>
+    <td>${cl?cl.nom:'—'}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="delUser(${u.id})">Supprimer</button></td>
+  </tr>`}).join('')}
+  </tbody></table></div></div>`;
+}
+function openAddUser(){
+  const co='<option value="">— aucune —</option>'+classes.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
+  showModal('Nouvel utilisateur',`<div class="form-grid form-grid-2">
+    <div class="form-group"><label>Prénom</label><input id="u-pn" class="form-control"></div>
+    <div class="form-group"><label>Nom</label><input id="u-nm" class="form-control"></div>
+    <div class="form-group"><label>Identifiant</label><input id="u-lg" class="form-control"></div>
+    <div class="form-group"><label>Mot de passe</label><input id="u-pw" class="form-control" type="password" value="password123"></div>
+    <div class="form-group"><label>Rôle</label><select id="u-rl" class="form-control"><option value="eleve">Élève</option><option value="prof">Professeur</option><option value="proviseur">Proviseur</option><option value="admin">Admin</option></select></div>
+    <div class="form-group"><label>Classe</label><select id="u-cl" class="form-control">${co}</select></div>
+  </div>`,[{label:'Créer',primary:true,action:addUser}]);
+}
+async function addUser(){
+  const pn=document.getElementById('u-pn').value.trim(),nm=document.getElementById('u-nm').value.trim(),
+    lg=document.getElementById('u-lg').value.trim(),pw=document.getElementById('u-pw').value,
+    rl=document.getElementById('u-rl').value,cl=parseInt(document.getElementById('u-cl').value)||null;
+  if(!pn||!nm||!lg||!pw){toast('Champs manquants','⚠️');return;}
+  if(users.find(u=>u.login===lg)){toast('Identifiant déjà utilisé','⚠️');return;}
+  const h=await sha256(pw);
+  const cols=['#2563EB','#7C3AED','#16A34A','#D97706','#DC2626'];
+  await DB.put('users',{login:lg,nom:nm,prenom:pn,role:rl,classeId:cl,passwordHash:h,color:cols[Math.floor(Math.random()*cols.length)]});
+  await reload();closeModal();pgUsers(document.getElementById('pg-users'));toast('Utilisateur créé','✅');
+}
+async function delUser(id){if(!confirm('Supprimer ?'))return;await DB.del('users',id);await reload();pgUsers(document.getElementById('pg-users'));toast('Supprimé','🗑️');}
+
+/* ─── CLASSES ─── */
+function pgClasses(el){
+  el.innerHTML=`<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between"><div><div class="page-title">Classes</div></div><button class="btn btn-primary" onclick="openAddClass()">+ Ajouter</button></div></div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Nom</th><th>Niveau</th><th>Année</th><th>Élèves</th><th>Actions</th></tr></thead><tbody>
+  ${classes.map(c=>`<tr><td class="td-bold">${c.nom}</td><td>${c.niveau}</td><td>${c.annee}</td><td>${users.filter(u=>u.classeId===c.id).length}</td><td><button class="btn btn-danger btn-sm" onclick="delClass(${c.id})">Supprimer</button></td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function openAddClass(){showModal('Nouvelle classe',`<div class="form-grid"><div class="form-group"><label>Nom</label><input id="cl-n" class="form-control" placeholder="3ème A"></div><div class="form-group"><label>Niveau</label><input id="cl-v" class="form-control" placeholder="3ème"></div><div class="form-group"><label>Année</label><input id="cl-a" class="form-control" placeholder="2024-2025"></div></div>`,[{label:'Créer',primary:true,action:addClass}]);}
+async function addClass(){const n=document.getElementById('cl-n').value.trim(),v=document.getElementById('cl-v').value.trim(),a=document.getElementById('cl-a').value.trim();if(!n||!v||!a){toast('Champs manquants','⚠️');return;}await DB.put('classes',{nom:n,niveau:v,annee:a});await reload();closeModal();pgClasses(document.getElementById('pg-classes'));toast('Classe créée','✅');}
+async function delClass(id){if(!confirm('Supprimer ?'))return;await DB.del('classes',id);await reload();pgClasses(document.getElementById('pg-classes'));toast('Supprimée','🗑️');}
+
+/* ─── MATIÈRES ─── */
+function pgMatieres(el){
+  el.innerHTML=`<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between"><div><div class="page-title">Matières</div></div><button class="btn btn-primary" onclick="openAddMat()">+ Ajouter</button></div></div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Matière</th><th>Code</th><th>Couleur</th><th>Actions</th></tr></thead><tbody>
+  ${matieres.map(m=>`<tr><td class="td-bold">${m.nom}</td><td><span class="badge badge-blue">${m.code}</span></td><td><span style="display:inline-block;width:18px;height:18px;border-radius:4px;background:${m.couleur}"></span></td><td><button class="btn btn-danger btn-sm" onclick="delMat(${m.id})">Supprimer</button></td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function openAddMat(){showModal('Nouvelle matière',`<div class="form-grid"><div class="form-group"><label>Nom</label><input id="mt-n" class="form-control"></div><div class="form-group"><label>Code</label><input id="mt-c" class="form-control" style="text-transform:uppercase"></div><div class="form-group"><label>Couleur</label><input id="mt-col" class="form-control" type="color" value="#2563EB"></div></div>`,[{label:'Créer',primary:true,action:addMat}]);}
+async function addMat(){const n=document.getElementById('mt-n').value.trim(),c=document.getElementById('mt-c').value.trim().toUpperCase(),col=document.getElementById('mt-col').value;if(!n||!c){toast('Champs manquants','⚠️');return;}await DB.put('matieres',{nom:n,code:c,couleur:col});await reload();closeModal();pgMatieres(document.getElementById('pg-matieres'));toast('Matière créée','✅');}
+async function delMat(id){if(!confirm('Supprimer ?'))return;await DB.del('matieres',id);await reload();pgMatieres(document.getElementById('pg-matieres'));toast('Supprimée','🗑️');}
+
+/* ─── NOTES (vue) ─── */
+function pgNotesV(el){
+  el.innerHTML=`<div class="page-header"><div class="page-title">Notes — vue globale</div></div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Élève</th><th>Matière</th><th>Intitulé</th><th>Note</th><th>Coef.</th><th>Date</th><th>Professeur</th></tr></thead><tbody>
+  ${notes.map(n=>`<tr><td class="td-bold">${uName(n.eleveLogin)}</td><td>${matCode(n.matiereId)}</td><td>${n.intitule||''}</td><td>${ac(n.valeur)}</td><td style="color:var(--text2)">${n.coef}</td><td style="color:var(--text2)">${n.date}</td><td style="color:var(--text2)">${uName(n.prof)}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+
+/* ─── ABSENCES (vue) ─── */
+function pgAbsV(el){
+  const pg=document.getElementById('pg-absences_v');
+  el.innerHTML=`<div class="page-header"><div class="page-title">Absences</div></div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Élève</th><th>Date</th><th>Heure</th><th>Durée</th><th>Matière</th><th>Statut</th><th>Motif</th><th>Action</th></tr></thead><tbody>
+  ${absences.map(a=>`<tr><td class="td-bold">${uName(a.eleveLogin)}</td><td>${a.date}</td><td>${a.heure||'—'}</td><td>${a.duree}h</td><td>${matCode(a.matiereId)}</td><td><span class="badge ${a.justifie?'badge-green':'badge-red'}">${a.justifie?'Justifiée':'Non just.'}</span></td><td style="color:var(--text2)">${a.motif||'—'}</td><td>${!a.justifie?`<button class="btn btn-outline btn-sm" onclick="justAbs(${a.id})">Justifier</button>`:'—'}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+async function justAbs(id){const a=absences.find(a=>a.id===id);if(!a)return;const m=prompt('Motif :');if(!m)return;a.justifie=true;a.motif=m;await DB.put('absences',a);await reload();pgAbsV(document.querySelector('.page.active'));toast('Justifiée','✅');}
+
+/* ─── PUNITIONS ADMIN ─── */
+function pgPunV(el){
+  el.innerHTML=`<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between"><div><div class="page-title">Punitions</div></div><button class="btn btn-rose" onclick="openAddPun('v')">+ Ajouter</button></div></div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Élève</th><th>Type</th><th>Motif</th><th>Détail</th><th>Date</th><th>Par</th><th>Statut</th><th>Actions</th></tr></thead><tbody>
+  ${punitions.slice().reverse().map(p=>`<tr>
+    <td class="td-bold">${uName(p.eleveLogin)}</td><td>${punBadge(p.type)}</td>
+    <td style="max-width:150px;font-size:12px">${p.motif||'—'}</td>
+    <td style="color:var(--text2);font-size:12px">${p.detail||'—'}</td>
+    <td style="color:var(--text2)">${p.date}</td>
+    <td style="color:var(--text2)">${uName(p.posePar)}</td>
+    <td><span class="badge ${p.levee?'badge-green':'badge-red'}">${p.levee?'Levée':'Active'}</span></td>
+    <td style="display:flex;gap:4px">${!p.levee?`<button class="btn btn-teal btn-sm" onclick="leverPun(${p.id},'v')">Lever</button>`:''}<button class="btn btn-danger btn-sm" onclick="delPun(${p.id},'v')">✕</button></td>
+  </tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+
+/* ─── PUNITIONS PROVISEUR ─── */
+function pgPunPV(el){
+  el.innerHTML=`<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between"><div><div class="page-title">Gestion des punitions</div><div class="page-subtitle">${punitions.filter(p=>!p.levee).length} active(s)</div></div><button class="btn btn-rose" onclick="openAddPun('pv')">⚠️ Nouvelle punition</button></div></div>
+  <div class="grid-3" style="margin-bottom:18px">
+    ${sc('⚠️','Total',punitions.length,'var(--rose-bg)','var(--rose)')}
+    ${sc('🔴','Actives',punitions.filter(p=>!p.levee).length,'var(--red-bg)','var(--red)')}
+    ${sc('✅','Levées',punitions.filter(p=>p.levee).length,'var(--green-bg)','var(--green)')}
+  </div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Élève</th><th>Type</th><th>Motif</th><th>Détail</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead><tbody>
+  ${punitions.slice().reverse().map(p=>`<tr>
+    <td class="td-bold">${uName(p.eleveLogin)}</td><td>${punBadge(p.type)}</td>
+    <td style="max-width:180px;font-size:12px">${p.motif||'—'}</td>
+    <td style="color:var(--text2);font-size:12px">${p.detail||'—'}</td>
+    <td style="color:var(--text2)">${p.date}</td>
+    <td><span class="badge ${p.levee?'badge-green':'badge-red'}">${p.levee?'Levée':'Active'}</span></td>
+    <td style="display:flex;gap:4px">${!p.levee?`<button class="btn btn-teal btn-sm" onclick="leverPun(${p.id},'pv')">✓ Lever</button>`:''}<button class="btn btn-danger btn-sm" onclick="delPun(${p.id},'pv')">✕</button></td>
+  </tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function openAddPun(src){
+  const eo=users.filter(u=>u.role==='eleve').map(u=>`<option value="${u.login}">${u.prenom} ${u.nom}</option>`).join('');
+  const to=PUNITION_TYPES.map(t=>`<option value="${t.val}">${t.label}</option>`).join('');
+  showModal('Nouvelle punition',`<div class="form-grid">
+    <div class="form-group"><label>Élève</label><select id="p-el" class="form-control">${eo}</select></div>
+    <div class="form-group"><label>Type</label><select id="p-ty" class="form-control">${to}</select></div>
+    <div class="form-group"><label>Motif</label><input id="p-mo" class="form-control" placeholder="Raison de la punition..."></div>
+    <div class="form-group"><label>Détail (optionnel)</label><input id="p-dt" class="form-control" placeholder="Samedi 8h-10h, salle 12..."></div>
+    <div class="form-group"><label>Date</label><input id="p-da" class="form-control" type="date" value="${td()}"></div>
+  </div>`,[{label:'Enregistrer',primary:true,action:()=>savePun(src)}]);
+}
+async function savePun(src){
+  const el=document.getElementById('p-el').value,ty=document.getElementById('p-ty').value,
+    mo=document.getElementById('p-mo').value.trim(),dt=document.getElementById('p-dt').value.trim(),
+    da=document.getElementById('p-da').value;
+  if(!el||!ty||!mo){toast('Champs obligatoires manquants','⚠️');return;}
+  await DB.put('punitions',{eleveLogin:el,type:ty,motif:mo,detail:dt,date:da,posePar:U.login,levee:false});
+  await reload();closeModal();
+  const pgId=src==='pv'?'pg-punitions_pv':'pg-punitions_v';
+  const pg=document.getElementById(pgId);if(pg?.classList.contains('active'))src==='pv'?pgPunPV(pg):pgPunV(pg);
+  toast('Punition enregistrée','⚠️');
+}
+async function leverPun(id,src){
+  const p=punitions.find(p=>p.id===id);if(!p)return;p.levee=true;await DB.put('punitions',p);await reload();
+  const pg=document.querySelector('.page.active');if(pg)navigate(pg.id.replace('pg-',''));
+  toast('Punition levée','✅');
+}
+async function delPun(id,src){
+  if(!confirm('Supprimer cette punition ?'))return;
+  await DB.del('punitions',id);await reload();
+  const pg=document.querySelector('.page.active');if(pg)navigate(pg.id.replace('pg-',''));
+  toast('Supprimée','🗑️');
+}
+
+/* ─── EDT LECTURE ─── */
+function pgEDTV(el){
+  let cid=U.classeId||edtClass;
+  let flt='';
+  if(U.role==='admin'||U.role==='prof'||U.role==='proviseur'){
+    const ops=classes.map(c=>`<option value="${c.id}" ${c.id===edtClass?'selected':''}>${c.nom}</option>`).join('');
+    flt=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px"><label style="font-size:13px;color:var(--text2)">Classe :</label><select class="form-control" style="width:160px" onchange="edtClass=parseInt(this.value);pgEDTV(document.getElementById('pg-edt_v'))">${ops}</select></div>`;
+    cid=edtClass;
+  }
+  el.innerHTML=`<div class="page-header"><div class="page-title">Emploi du temps</div></div>${flt}${buildEDT(cid,false)}`;
+}
+
+/* ─── EDT ÉDITABLE (proviseur) ─── */
+function pgEDTEdit(el){
+  const ops=classes.map(c=>`<option value="${c.id}" ${c.id===edtClass?'selected':''}>${c.nom}</option>`).join('');
+  el.innerHTML=`<div class="page-header"><div class="page-title">Modifier les emplois du temps</div><div class="page-subtitle">Case vide → ajouter un cours | Case pleine → cliquer pour supprimer</div></div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+    <label style="font-size:13px;color:var(--text2)">Classe :</label>
+    <select class="form-control" style="width:160px" onchange="edtClass=parseInt(this.value);pgEDTEdit(document.getElementById('pg-edt_edit'))">${ops}</select>
+  </div>
+  ${buildEDT(edtClass,true)}`;
+}
+function buildEDT(cid,editable){
+  const ef=edt.filter(e=>e.classeId===cid);
+  let h=`<div class="edt-grid"><div class="edt-header"></div>`;
+  JOURS.forEach(j=>h+=`<div class="edt-header">${j}</div>`);
+  SLOTS.forEach((slot,si)=>{
+    h+=`<div class="edt-time">${slot}</div>`;
+    JOURS.forEach((j,ji)=>{
+      const lesson=ef.find(e=>e.jour===ji&&e.slot===si);
+      if(lesson){
+        const mat=matieres.find(m=>m.id===lesson.matiereId),col=mat?.couleur||'#6B7280';
+        h+=`<div class="edt-cell ${editable?'clickable':''}" ${editable?`onclick="removeEDT(${lesson.id})" title="Cliquer pour supprimer"`:''}>`
+          +`<div class="edt-lesson" style="background:${col}18;border-left:3px solid ${col}">`
+          +`<div class="edt-lesson-name" style="color:${col}">${mat?.nom||'?'}</div>`
+          +`<div class="edt-lesson-room" style="color:${col}">${lesson.salle||''}</div></div></div>`;
+      } else {
+        h+=`<div class="edt-cell ${editable?'editable-empty':''}" ${editable?`onclick="openAddEDT(${ji},${si},${cid})" title="Ajouter un cours"`:''}>`
+          +(editable?`<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:18px;opacity:0">+</div>`:'')
+          +`</div>`;
+      }
+    });
+  });
+  return h+'</div>';
+}
+function openAddEDT(jour,slot,cid){
+  const mo=matieres.map(m=>`<option value="${m.id}">${m.nom}</option>`).join('');
+  const po=users.filter(u=>u.role==='prof').map(u=>`<option value="${u.login}">${u.prenom} ${u.nom}</option>`).join('');
+  showModal(`Ajouter un cours — ${JOURS[jour]} ${SLOTS[slot]}`,`<div class="form-grid">
+    <div class="form-group"><label>Matière</label><select id="ed-mat" class="form-control">${mo}</select></div>
+    <div class="form-group"><label>Professeur</label><select id="ed-prf" class="form-control">${po}</select></div>
+    <div class="form-group"><label>Salle</label><input id="ed-sal" class="form-control" placeholder="S201, Labo..."></div>
+  </div>`,[{label:'Ajouter',primary:true,action:()=>saveEDT(jour,slot,cid)}]);
+}
+async function saveEDT(jour,slot,cid){
+  const mid=parseInt(document.getElementById('ed-mat').value),pl=document.getElementById('ed-prf').value,sal=document.getElementById('ed-sal').value.trim();
+  if(!mid||!pl){toast('Champs manquants','⚠️');return;}
+  await DB.put('emploiDuTemps',{jour,slot,classeId:cid,matiereId:mid,profLogin:pl,salle:sal});
+  await reload();closeModal();pgEDTEdit(document.getElementById('pg-edt_edit'));toast('Cours ajouté !','📅');
+}
+async function removeEDT(id){
+  if(!confirm('Supprimer ce cours ?'))return;
+  await DB.del('emploiDuTemps',id);await reload();pgEDTEdit(document.getElementById('pg-edt_edit'));toast('Cours supprimé','🗑️');
+}
+
+/* ─── SAISIE NOTES ─── */
+function pgSaisieNotes(el){
+  const eo=users.filter(u=>u.role==='eleve').map(u=>`<option value="${u.login}">${u.prenom} ${u.nom}</option>`).join('');
+  const mo=matieres.map(m=>`<option value="${m.id}">${m.nom}</option>`).join('');
+  el.innerHTML=`<div class="page-header"><div class="page-title">Saisie des notes</div></div>
+  <div class="grid-2" style="align-items:start">
+    <div class="card"><div class="card-header"><span class="card-title">Nouvelle note</span></div><div class="card-body"><div class="form-grid">
+      <div class="form-group"><label>Élève</label><select id="n-el" class="form-control">${eo}</select></div>
+      <div class="form-group"><label>Matière</label><select id="n-mt" class="form-control">${mo}</select></div>
+      <div class="form-group"><label>Intitulé</label><input id="n-it" class="form-control" placeholder="DS, Contrôle, TP..."></div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label>Note /20</label><input id="n-vl" class="form-control" type="number" min="0" max="20" step="0.5"></div>
+        <div class="form-group"><label>Coefficient</label><input id="n-cf" class="form-control" type="number" min="1" max="5" value="1"></div>
+      </div>
+      <div class="form-group"><label>Date</label><input id="n-dt" class="form-control" type="date" value="${td()}"></div>
+      <button class="btn btn-primary" onclick="saveNote()">Enregistrer</button>
+    </div></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Notes récentes</span></div><div class="table-wrap" id="nr">${noteRec()}</div></div>
+  </div>`;
+}
+function noteRec(){
+  return`<table><thead><tr><th>Élève</th><th>Mat.</th><th>Note</th><th>Date</th><th></th></tr></thead><tbody>
+  ${notes.filter(n=>n.prof===U.login).slice(-10).reverse().map(n=>`<tr><td class="td-bold">${uName(n.eleveLogin)}</td><td>${matCode(n.matiereId)}</td><td>${ac(n.valeur)}</td><td style="color:var(--text2)">${n.date}</td><td><button class="btn btn-danger btn-sm" onclick="delNote(${n.id})">✕</button></td></tr>`).join('')}
+  </tbody></table>`;
+}
+async function saveNote(){
+  const el=document.getElementById('n-el').value,mt=parseInt(document.getElementById('n-mt').value),
+    it=document.getElementById('n-it').value.trim(),vl=parseFloat(document.getElementById('n-vl').value),
+    cf=parseInt(document.getElementById('n-cf').value)||1,dt=document.getElementById('n-dt').value;
+  if(!el||!mt||isNaN(vl)||vl<0||vl>20){toast('Données invalides','⚠️');return;}
+  await DB.put('notes',{eleveLogin:el,matiereId:mt,intitule:it,valeur:vl,coef:cf,date:dt,prof:U.login});
+  await reload();document.getElementById('nr').innerHTML=noteRec();toast('Note enregistrée','📝');
+}
+async function delNote(id){await DB.del('notes',id);await reload();document.getElementById('nr').innerHTML=noteRec();toast('Supprimée','🗑️');}
+
+/* ─── SAISIE ABSENCES ─── */
+function pgSaisieAbs(el){
+  const eo=users.filter(u=>u.role==='eleve').map(u=>`<option value="${u.login}">${u.prenom} ${u.nom}</option>`).join('');
+  const mo=matieres.map(m=>`<option value="${m.id}">${m.nom}</option>`).join('');
+  el.innerHTML=`<div class="page-header"><div class="page-title">Saisie des absences</div></div>
+  <div class="grid-2" style="align-items:start">
+    <div class="card"><div class="card-header"><span class="card-title">Signaler une absence</span></div><div class="card-body"><div class="form-grid">
+      <div class="form-group"><label>Élève</label><select id="a-el" class="form-control">${eo}</select></div>
+      <div class="form-group"><label>Matière</label><select id="a-mt" class="form-control">${mo}</select></div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label>Date</label><input id="a-dt" class="form-control" type="date" value="${td()}"></div>
+        <div class="form-group"><label>Heure</label><input id="a-he" class="form-control" placeholder="08h00"></div>
+      </div>
+      <div class="form-group"><label>Durée (h)</label><input id="a-dr" class="form-control" type="number" min="1" max="8" value="1"></div>
+      <button class="btn btn-primary" onclick="saveAbs()">Enregistrer</button>
+    </div></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Absences récentes</span></div><div class="table-wrap" id="ar">${absRec()}</div></div>
+  </div>`;
+}
+function absRec(){return`<table><thead><tr><th>Élève</th><th>Date</th><th>Durée</th><th>Statut</th></tr></thead><tbody>${absences.slice(-8).reverse().map(a=>`<tr><td class="td-bold">${uName(a.eleveLogin)}</td><td>${a.date}</td><td>${a.duree}h</td><td><span class="badge ${a.justifie?'badge-green':'badge-red'}">${a.justifie?'Justifiée':'Non just.'}</span></td></tr>`).join('')}</tbody></table>`;}
+async function saveAbs(){
+  const el=document.getElementById('a-el').value,mt=parseInt(document.getElementById('a-mt').value),
+    dt=document.getElementById('a-dt').value,he=document.getElementById('a-he').value.trim(),dr=parseInt(document.getElementById('a-dr').value)||1;
+  if(!el||!dt){toast('Données manquantes','⚠️');return;}
+  await DB.put('absences',{eleveLogin:el,matiereId:mt,date:dt,heure:he,duree:dr,justifie:false,motif:''});
+  await reload();document.getElementById('ar').innerHTML=absRec();toast('Absence enregistrée','📋');
+}
+
+/* ─── ÉLÈVE ─── */
+function pgMesNotes(el){
+  const mn=notes.filter(n=>n.eleveLogin===U.login),m=moy(mn);
+  const bm=matieres.map(mat=>{const ns=mn.filter(n=>n.matiereId===mat.id);return{mat,ns,m:moy(ns)}}).filter(x=>x.ns.length);
+  el.innerHTML=`<div class="page-header"><div class="page-title">Mes notes</div><div class="page-subtitle">Moyenne générale : ${m!==null?`<strong>${m.toFixed(2)}/20</strong>`:'—'}</div></div>
+  ${bm.map(({mat,ns,m})=>`<div class="card" style="margin-bottom:14px">
+    <div class="card-header"><div style="display:flex;align-items:center;gap:8px"><span style="width:9px;height:9px;border-radius:50%;background:${mat.couleur};display:inline-block"></span><span class="card-title">${mat.nom}</span></div><div style="display:flex;align-items:center;gap:7px"><span style="font-size:12px;color:var(--text2)">Moyenne :</span>${ac(m)}</div></div>
+    <div class="table-wrap"><table><thead><tr><th>Intitulé</th><th>Note /20</th><th>Coef.</th><th>Date</th></tr></thead><tbody>
+    ${ns.map(n=>`<tr><td class="td-bold">${n.intitule||'—'}</td><td>${ac(n.valeur)}</td><td style="color:var(--text2)">${n.coef}</td><td style="color:var(--text2)">${n.date}</td></tr>`).join('')}
+    </tbody></table></div></div>`).join('')}`;
+}
+function pgMesAbs(el){
+  const ma=absences.filter(a=>a.eleveLogin===U.login),tot=ma.reduce((s,a)=>s+a.duree,0);
+  el.innerHTML=`<div class="page-header"><div class="page-title">Mes absences</div></div>
+  <div class="grid-3" style="margin-bottom:18px">${sc('📋','Total',ma.length,'var(--yellow-bg)','var(--yellow)')}${sc('🕐','Heures manquées',tot+'h','var(--red-bg)','var(--red)')}${sc('✅','Justifiées',ma.filter(a=>a.justifie).length,'var(--green-bg)','var(--green)')}</div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Heure</th><th>Durée</th><th>Matière</th><th>Statut</th><th>Motif</th></tr></thead><tbody>
+  ${ma.length?ma.map(a=>`<tr><td class="td-bold">${a.date}</td><td>${a.heure||'—'}</td><td>${a.duree}h</td><td>${matCode(a.matiereId)}</td><td><span class="badge ${a.justifie?'badge-green':'badge-red'}">${a.justifie?'Justifiée':'Non just.'}</span></td><td style="color:var(--text2)">${a.motif||'—'}</td></tr>`).join(''):'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">Aucune absence 🎉</td></tr>'}
+  </tbody></table></div></div>`;
+}
+function pgMesPun(el){
+  const mp=punitions.filter(p=>p.eleveLogin===U.login);
+  el.innerHTML=`<div class="page-header"><div class="page-title">Mes punitions</div></div>
+  <div class="grid-3" style="margin-bottom:18px">${sc('⚠️','Total',mp.length,'var(--rose-bg)','var(--rose)')}${sc('🔴','Actives',mp.filter(p=>!p.levee).length,'var(--red-bg)','var(--red)')}${sc('✅','Levées',mp.filter(p=>p.levee).length,'var(--green-bg)','var(--green)')}</div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Type</th><th>Motif</th><th>Détail</th><th>Date</th><th>Statut</th></tr></thead><tbody>
+  ${mp.length?mp.slice().reverse().map(p=>`<tr><td>${punBadge(p.type)}</td><td style="max-width:200px;font-size:12px">${p.motif||'—'}</td><td style="color:var(--text2)">${p.detail||'—'}</td><td style="color:var(--text2)">${p.date}</td><td><span class="badge ${p.levee?'badge-green':'badge-red'}">${p.levee?'Levée':'Active'}</span></td></tr>`).join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">Aucune punition 🎉</td></tr>'}
+  </tbody></table></div></div>`;
+}
+
+/* ─── MODAL / TOAST ─── */
+function showModal(title,body,actions=[]){
+  const btns=actions.map(a=>`<button class="btn ${a.primary?'btn-primary':'btn-outline'}" onclick="(${a.action})()">${a.label}</button>`).join('');
+  document.getElementById('modal-box').innerHTML=`<div class="modal-header"><span class="modal-title">${title}</span><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body">${body}</div><div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Annuler</button>${btns}</div>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(e){if(e&&e.target!==document.getElementById('modal-overlay'))return;document.getElementById('modal-overlay').classList.remove('open');}
+let tt;
+function toast(msg,icon='✓'){const el=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;document.getElementById('toast-icon').textContent=icon;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2800);}
+
+init();
+</script>
+</body>
+</html>
