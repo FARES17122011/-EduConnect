@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduConnect — Gestion Scolaire</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F0F2F7;--surface:#FFF;--surface2:#F7F8FC;--border:#E3E6EF;
+  --accent:#2563EB;--accent2:#1E40AF;--accent-bg:#EFF6FF;
+  --green:#16A34A;--green-bg:#F0FDF4;--red:#DC2626;--red-bg:#FEF2F2;
+  --yellow:#D97706;--yellow-bg:#FFFBEB;--purple:#7C3AED;--purple-bg:#F5F3FF;
+  --rose:#BE123C;--rose-bg:#FFE4E6;--teal:#0D9488;--teal-bg:#F0FDFA;
+  --orange:#EA580C;--orange-bg:#FFF7ED;--pink:#DB2777;--pink-bg:#FDF2F8;
+  --cyan:#0891B2;--cyan-bg:#ECFEFF;
+  --text:#111827;--text2:#6B7280;--text3:#9CA3AF;
+  --radius:12px;--radius-sm:8px;--shadow-lg:0 8px 32px rgba(0,0,0,.10);
+  --sidebar-w:264px;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5}
+button{font-family:var(--font);cursor:pointer;border:none}
+input,textarea,select{font-family:var(--font)}
+
+/* ── AUTH ── */
+#auth-screen{display:none;align-items:center;justify-content:center;min-height:100vh;
+  background:linear-gradient(135deg,#1E3A8A 0%,#1D4ED8 50%,#2563EB 100%);position:relative;overflow:hidden}
+#auth-screen::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 20% 80%,rgba(99,102,241,.3) 0%,transparent 60%),
+             radial-gradient(ellipse 60% 80% at 80% 20%,rgba(14,165,233,.2) 0%,transparent 60%)}
+.auth-grid{position:absolute;inset:0;opacity:.06;
+  background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:40px 40px}
+.auth-card{background:rgba(255,255,255,.97);border-radius:20px;padding:36px 36px 28px;
+  width:500px;max-width:calc(100vw - 24px);box-shadow:0 24px 80px rgba(0,0,0,.3);
+  position:relative;z-index:1;max-height:96vh;overflow-y:auto}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.auth-logo-icon{width:38px;height:38px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:18px}
+.auth-logo-text{font-size:20px;font-weight:700}.auth-logo-text span{color:var(--accent)}
+.auth-tagline{font-size:11.5px;color:var(--text3);margin-bottom:22px;letter-spacing:.02em}
+.auth-field{margin-bottom:13px}
+.auth-field label{display:block;font-size:12.5px;font-weight:500;color:var(--text2);margin-bottom:5px}
+.auth-field input{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13.5px;color:var(--text);outline:none;background:var(--surface2);transition:border-color .15s,box-shadow .15s}
+.auth-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1);background:white}
+.auth-btn{width:100%;padding:11px;background:var(--accent);color:white;border-radius:var(--radius-sm);font-size:14px;font-weight:600;transition:background .15s,transform .1s;margin-top:6px}
+.auth-btn:hover{background:var(--accent2);transform:translateY(-1px)}.auth-btn:active{transform:translateY(0)}
+.auth-error{background:var(--red-bg);border:1px solid #FECACA;color:var(--red);padding:9px 13px;border-radius:var(--radius-sm);font-size:12.5px;margin-bottom:13px;display:none}
+.auth-success{background:var(--green-bg);border:1px solid #BBF7D0;color:var(--green);padding:9px 13px;border-radius:var(--radius-sm);font-size:12.5px;margin-bottom:13px;display:none}
+.auth-forgot{text-align:right;margin-top:-6px;margin-bottom:10px}
+.auth-forgot a{font-size:12px;color:var(--accent);text-decoration:none;cursor:pointer}
+.auth-forgot a:hover{text-decoration:underline}
+.auth-info{margin-top:12px;padding:10px 13px;background:#F0FDF4;border-radius:var(--radius-sm);border:1px solid #BBF7D0;font-size:11.5px;color:#166534;text-align:center;line-height:1.6}
+.acc-section{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+.acc-section-title{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px}
+.acc-table{width:100%;border-collapse:collapse;font-size:11.5px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.acc-table thead th{padding:6px 9px;text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;background:var(--surface2);border-bottom:1px solid var(--border)}
+.acc-table tbody tr{border-bottom:1px solid var(--border)}
+.acc-table tbody tr:last-child{border-bottom:none}
+.acc-table tbody td{padding:6px 9px;vertical-align:middle}
+.acc-login{font-family:var(--mono);font-size:10.5px;background:var(--surface2);padding:1px 5px;border-radius:3px;border:1px solid var(--border)}
+
+/* ── RESET PWD PANEL ── */
+#reset-panel{display:none}
+.reset-back{background:none;border:none;color:var(--accent);font-size:12.5px;cursor:pointer;padding:0;margin-bottom:16px;display:flex;align-items:center;gap:4px}
+
+/* ── APP ── */
+#app{display:none;height:100vh;overflow:hidden}
+.layout{display:flex;height:100vh}
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sidebar-header{padding:16px 16px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:9px}
+.sidebar-logo{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;flex-shrink:0}
+.sidebar-brand{font-size:14.5px;font-weight:700}.sidebar-brand span{color:var(--accent)}
+.user-card{margin:10px 10px 6px;padding:10px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.user-card-name{font-size:12.5px;font-weight:600}
+.user-card-role{font-size:10.5px;color:var(--text2);margin-top:2px}
+.user-card-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;margin-top:4px}
+.nav-section{padding:4px 8px 2px}
+.nav-section-label{font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:0 4px;margin-bottom:2px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--radius-sm);cursor:pointer;transition:background .1s;color:var(--text2);font-size:12.5px;font-weight:500}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-bg);color:var(--accent)}
+.nav-item .icon{font-size:14px;width:18px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--red);color:white;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:10px}
+.sidebar-footer{margin-top:auto;padding:10px;border-top:1px solid var(--border)}
+.logout-btn{width:100%;padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:12px;font-weight:500;transition:background .1s,color .1s}
+.logout-btn:hover{background:var(--red-bg);color:var(--red);border-color:#FECACA}
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.page{display:none;padding:24px 28px;max-width:1200px}
+.page.active{display:block;animation:fadeIn .18s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.page-header{margin-bottom:20px}
+.page-title{font-size:20px;font-weight:700}
+.page-subtitle{font-size:12.5px;color:var(--text2);margin-top:3px}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border)}
+.card-header{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13px;font-weight:600}
+.card-body{padding:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+.stat-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:16px;display:flex;align-items:flex-start;gap:11px}
+.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.stat-value{font-size:22px;font-weight:700;line-height:1}
+.stat-label{font-size:11.5px;color:var(--text2);margin-top:3px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{padding:8px 12px;text-align:left;font-size:10.5px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;background:var(--surface2);border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+tbody td{padding:9px 12px;vertical-align:middle}
+.td-bold{font-weight:600}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.badge-blue{background:var(--accent-bg);color:var(--accent)}
+.badge-purple{background:var(--purple-bg);color:var(--purple)}
+.badge-rose{background:var(--rose-bg);color:var(--rose)}
+.badge-teal{background:var(--teal-bg);color:var(--teal)}
+.badge-orange{background:var(--orange-bg);color:var(--orange)}
+.badge-pink{background:var(--pink-bg);color:var(--pink)}
+.badge-cyan{background:var(--cyan-bg);color:var(--cyan)}
+.avg-chip{display:inline-flex;align-items:center;justify-content:center;width:37px;height:25px;border-radius:5px;font-weight:700;font-size:12px}
+.avg-high{background:var(--green-bg);color:var(--green)}
+.avg-mid{background:var(--yellow-bg);color:var(--yellow)}
+.avg-low{background:var(--red-bg);color:var(--red)}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;transition:.15s}
+.btn-primary{background:var(--accent);color:white}.btn-primary:hover{background:var(--accent2)}
+.btn-outline{background:white;color:var(--text);border:1.5px solid var(--border)}.btn-outline:hover{background:var(--surface2)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1.5px solid #FECACA}.btn-danger:hover{background:#FEE2E2}
+.btn-rose{background:var(--rose-bg);color:var(--rose);border:1.5px solid #FECDD3}.btn-rose:hover{background:#FFD1D9}
+.btn-teal{background:var(--teal-bg);color:var(--teal);border:1.5px solid #99F6E4}.btn-teal:hover{background:#CCFBF1}
+.btn-orange{background:var(--orange-bg);color:var(--orange);border:1.5px solid #FED7AA}.btn-orange:hover{background:#FFEDD5}
+.btn-cyan{background:var(--cyan-bg);color:var(--cyan);border:1.5px solid #A5F3FC}.btn-cyan:hover{background:#CFFAFE}
+.btn-sm{padding:4px 8px;font-size:11px}
+.form-grid{display:grid;gap:12px}
+.form-grid-2{grid-template-columns:1fr 1fr}
+.form-grid-3{grid-template-columns:1fr 1fr 1fr}
+.form-group label{display:block;font-size:11.5px;font-weight:500;color:var(--text2);margin-bottom:4px}
+.form-control{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text);background:white;outline:none;transition:border-color .15s,box-shadow .15s}
+.form-control:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+select.form-control{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;appearance:none}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:white;border-radius:14px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:slideModal .18s ease}
+@keyframes slideModal{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:16px 20px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:14.5px;font-weight:700}
+.modal-close{width:28px;height:28px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:15px;color:var(--text2)}
+.modal-close:hover{background:var(--red-bg);color:var(--red)}
+.modal-body{padding:16px 20px}
+.modal-footer{padding:11px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:7px}
+.edt-grid{display:grid;grid-template-columns:56px repeat(5,1fr);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.edt-header{padding:8px 5px;text-align:center;font-size:11px;font-weight:600;background:var(--surface2);border-bottom:1px solid var(--border);border-right:1px solid var(--border);color:var(--text2)}
+.edt-time{padding:0 3px;text-align:center;font-size:9.5px;color:var(--text3);font-family:var(--mono);border-right:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;background:var(--surface2);height:60px}
+.edt-cell{height:60px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);position:relative;padding:2px;transition:background .1s}
+.edt-cell.editable:hover{background:var(--accent-bg);cursor:pointer}
+.edt-lesson{height:100%;border-radius:5px;padding:3px 5px;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.edt-lesson-name{font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.edt-lesson-room{font-size:9px;opacity:.75}
+.msg-list{display:flex;flex-direction:column;gap:1px}
+.msg-item{display:flex;align-items:flex-start;gap:10px;padding:10px 13px;border-radius:var(--radius-sm);cursor:pointer;transition:background .1s}
+.msg-item:hover{background:var(--surface2)}
+.msg-item.unread{background:var(--accent-bg)}
+.msg-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.msg-from{font-size:12px;font-weight:600}
+.msg-item.unread .msg-from::after{content:'';display:inline-block;width:6px;height:6px;background:var(--accent);border-radius:50%;margin-left:6px;vertical-align:middle}
+.msg-subject{font-size:11.5px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg-date{font-size:10.5px;color:var(--text3);white-space:nowrap}
+/* Appel présence */
+.appel-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:6px;background:white}
+.appel-name{flex:1;font-size:13px;font-weight:500}
+.appel-btn{padding:5px 12px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:.12s}
+.appel-btn.present{background:var(--green-bg);color:var(--green);border-color:#BBF7D0}
+.appel-btn.absent{background:var(--red-bg);color:var(--red);border-color:#FECACA}
+.appel-btn.retard{background:var(--yellow-bg);color:var(--yellow);border-color:#FDE68A}
+.appel-btn.inactive{background:var(--surface2);color:var(--text3);border-color:var(--border)}
+/* Loading */
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.82);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:11px}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;right:20px;z-index:998;background:#111827;color:white;padding:10px 15px;border-radius:9px;font-size:13px;box-shadow:var(--shadow-lg);display:none;align-items:center;gap:7px}
+.toast.show{display:flex}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+@media(max-width:768px){.sidebar{width:196px}:root{--sidebar-w:196px}.page{padding:16px 12px}.grid-4{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ══ AUTH ══ -->
+<div id="auth-screen">
+  <div class="auth-grid"></div>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🎓</div>
+      <div class="auth-logo-text">Edu<span>Connect</span></div>
+    </div>
+    <p class="auth-tagline">Plateforme numérique de gestion scolaire</p>
+
+    <!-- CONNEXION -->
+    <div id="login-panel">
+      <div id="auth-error"  class="auth-error"></div>
+      <div id="auth-ok"     class="auth-success"></div>
+      <div class="auth-field"><label>Identifiant</label><input type="text" id="login-user" placeholder="votre.identifiant" autocomplete="username"></div>
+      <div class="auth-field"><label>Mot de passe</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="auth-forgot"><a onclick="showReset('forgot')">🔑 Mot de passe oublié ?</a></div>
+      <button class="auth-btn" id="login-btn" onclick="doLogin()">Se connecter →</button>
+
+      <div class="acc-section">
+        <div class="acc-section-title">📋 Comptes disponibles</div>
+        <table class="acc-table">
+          <thead><tr><th>Rôle</th><th>Nom</th><th>Identifiant</th><th>Pass</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge badge-purple">Admin</span></td><td style="font-weight:600">Marc Dupont</td><td><span class="acc-login">admin</span></td><td style="font-family:var(--mono);font-size:10.5px;color:var(--text2)">password123</td></tr>
+            <tr><td><span class="badge badge-teal">Proviseur</span></td><td style="font-weight:600">Claire Laurent</td><td><span class="acc-login">proviseur</span></td><td style="font-family:var(--mono);font-size:10.5px;color:var(--text2)">password123</td></tr>
+            <tr><td><span class="badge badge-blue">Professeur</span></td><td style="font-weight:600">Sophie Bernard</td><td><span class="acc-login">prof.math</span></td><td style="font-family:var(--mono);font-size:10.5px;color:var(--text2)">password123</td></tr>
+            <tr><td><span class="badge badge-blue">Professeur</span></td><td style="font-weight:600">Jean Martin</td><td><span class="acc-login">prof.fr</span></td><td style="font-family:var(--mono);font-size:10.5px;color:var(--text2)">password123</td></tr>
+            <tr><td><span class="badge badge-green">Élève</span></td><td style="font-weight:600">Alice Leblanc</td><td><span class="acc-login">eleve1</span></td><td style="font-family:var(--mono);font-size:10.5px;color:var(--text2)">password123</td></tr>
+            <tr><td><span class="badge badge-green">Élève</span></td><td style="font-weight:600">Thomas Morel</td><td><span class="acc-login">eleve2</span></td><td style="font-family:var(--mono);font-size:10.5px;color:var(--text2)">password123</td></tr>
+            <tr><td><span class="badge badge-green">Élève</span></td><td style="font-weight:600">Emma Garcia</td><td><span class="acc-login">eleve3</span></td><td style="font-family:var(--mono);font-size:10.5px;color:var(--text2)">password123</td></tr>
+            <tr><td><span class="badge badge-orange">Parent</span></td><td style="font-weight:600">Pierre Leblanc</td><td><span class="acc-login">parent1</span></td><td style="font-family:var(--mono);font-size:10.5px;color:var(--text2)">password123</td></tr>
+            <tr><td><span class="badge badge-pink">Parent</span></td><td style="font-weight:600">Isabelle Morel</td><td><span class="acc-login">parent2</span></td><td style="font-family:var(--mono);font-size:10.5px;color:var(--text2)">password123</td></tr>
+            <tr><td><span class="badge badge-cyan">Vie Sco.</span></td><td style="font-weight:600">Nathalie Durand</td><td><span class="acc-login">vie.scolaire</span></td><td style="font-family:var(--mono);font-size:10.5px;color:var(--text2)">password123</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="auth-info">🌐 Serveur central Supabase · Données synchronisées entre tous les appareils</div>
+    </div>
+
+    <!-- MOT DE PASSE OUBLIÉ -->
+    <div id="reset-panel">
+      <button class="reset-back" onclick="showReset('login')">← Retour à la connexion</button>
+      <div id="reset-step1" style="display:block">
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">🔑 Mot de passe oublié</div>
+        <p style="font-size:12.5px;color:var(--text2);margin-bottom:16px">Saisissez votre identifiant. Un e-mail de réinitialisation sera envoyé à l'adresse associée.</p>
+        <div id="reset-error" class="auth-error"></div>
+        <div id="reset-ok"    class="auth-success"></div>
+        <div class="auth-field"><label>Identifiant</label><input type="text" id="reset-login" placeholder="votre.identifiant"></div>
+        <button class="auth-btn" onclick="sendResetEmail()">Envoyer le lien de réinitialisation →</button>
+      </div>
+      <div id="reset-step2" style="display:none">
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">🔒 Nouveau mot de passe</div>
+        <p style="font-size:12.5px;color:var(--text2);margin-bottom:16px">Saisissez votre nouveau mot de passe.</p>
+        <div id="newpwd-error" class="auth-error"></div>
+        <div class="auth-field"><label>Token reçu par e-mail</label><input type="text" id="reset-token" placeholder="Collez le code ici"></div>
+        <div class="auth-field"><label>Nouveau mot de passe</label><input type="password" id="new-pwd" placeholder="••••••••"></div>
+        <div class="auth-field"><label>Confirmer</label><input type="password" id="new-pwd2" placeholder="••••••••"></div>
+        <button class="auth-btn" onclick="doResetPassword()">Enregistrer le nouveau mot de passe →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">🎓</div>
+        <div class="sidebar-brand">Edu<span>Connect</span></div>
+      </div>
+      <div class="user-card">
+        <div class="user-card-name" id="sb-name">—</div>
+        <div class="user-card-role" id="sb-class">—</div>
+        <span class="user-card-badge" id="sb-badge"></span>
+      </div>
+      <nav id="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <button class="logout-btn" onclick="doLogout()">⬅ Se déconnecter</button>
+      </div>
+    </aside>
+    <main class="main" id="main-content"></main>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loading" style="display:none">
+  <div class="spinner"></div>
+  <span style="color:var(--text2);font-size:13px" id="loading-msg">Chargement…</span>
+</div>
+<div class="toast" id="toast"><span id="toast-icon">✓</span><span id="toast-msg"></span></div>
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)"><div class="modal" id="modal-box"></div></div>
+
+<script>
+/* ══════════════════════════════════════════════════
+   CONFIG SUPABASE — intégrée
+══════════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://rprehnjcoffwbhmcuois.supabase.co';
+const SUPABASE_KEY = 'sb_publishable__BmId-jG4MF7JHyxJaXwHQ_fpzNE3P2';
+
+const SB = {
+  h(){return{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Prefer':'return=representation'}},
+  async get(t,p=''){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?${p}`,{headers:this.h()});if(!r.ok)throw new Error(await r.text());return r.json()},
+  async post(t,b){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}`,{method:'POST',headers:this.h(),body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return r.json()},
+  async patch(t,id,b){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',headers:this.h(),body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return r.json()},
+  async del(t,id){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?id=eq.${id}`,{method:'DELETE',headers:this.h()});if(!r.ok)throw new Error(await r.text())},
+  async patchQ(t,q,b){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?${q}`,{method:'PATCH',headers:this.h(),body:JSON.stringify(b)});if(!r.ok)throw new Error(await r.text());return r.json()},
+};
+
+async function sha256(m){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(m));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+function randToken(){return Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join('')}
+
+/* ══════════════════════════════════════════════════
+   ÉTAT
+══════════════════════════════════════════════════ */
+let U=null;
+let users=[],classes=[],matieres=[],notes=[],absences=[],messages=[],edt=[],punitions=[],parentLinks=[];
+let msgUnread=0,edtClass=1;
+
+const ROLE_LABELS={admin:'Administrateur',proviseur:'Proviseur',prof:'Professeur',eleve:'Élève',parent:'Parent',vie_scolaire:'Vie Scolaire'};
+const ROLE_BADGE={admin:'badge-purple',proviseur:'badge-teal',prof:'badge-blue',eleve:'badge-green',parent:'badge-orange',vie_scolaire:'badge-cyan'};
+const ROLE_COLOR={admin:'var(--purple)',proviseur:'var(--teal)',prof:'var(--accent)',eleve:'var(--green)',parent:'var(--orange)',vie_scolaire:'var(--cyan)'};
+const ROLE_BG={admin:'var(--purple-bg)',proviseur:'var(--teal-bg)',prof:'var(--accent-bg)',eleve:'var(--green-bg)',parent:'var(--orange-bg)',vie_scolaire:'var(--cyan-bg)'};
+
+const PUNITION_TYPES=[
+  {val:'retenue',label:'Retenue',badge:'badge-yellow'},
+  {val:'exclusion',label:'Exclusion',badge:'badge-red'},
+  {val:'convocation',label:'Conv. parents',badge:'badge-rose'},
+  {val:'avertis',label:'Avertissement',badge:'badge-blue'},
+  {val:'travail',label:'Travail supp.',badge:'badge-purple'},
+];
+const JOURS=['Lundi','Mardi','Mercredi','Jeudi','Vendredi'];
+const SLOTS=['08h00','09h00','10h00','11h00','12h00','13h00','14h00','15h00','16h00'];
+
+const NAV={
+  admin:[
+    {s:'Principal'},{id:'dashboard',label:'Tableau de bord',icon:'📊'},{id:'messages',label:'Messagerie',icon:'✉️',badge:true},
+    {s:'Gestion'},{id:'users',label:'Utilisateurs',icon:'👥'},{id:'classes',label:'Classes',icon:'🏫'},{id:'matieres',label:'Matières',icon:'📚'},
+    {id:'notes_v',label:'Notes',icon:'📝'},{id:'absences_v',label:'Absences',icon:'📋'},{id:'punitions_v',label:'Punitions',icon:'⚠️'},{id:'edt_v',label:'Emploi du temps',icon:'📅'},
+  ],
+  proviseur:[
+    {s:'Principal'},{id:'dashboard',label:'Tableau de bord',icon:'📊'},{id:'messages',label:'Messagerie',icon:'✉️',badge:true},
+    {s:'Direction'},{id:'edt_edit',label:'Modifier les EDT',icon:'📅'},{id:'punitions_pv',label:'Punitions',icon:'⚠️'},{id:'absences_v',label:'Absences',icon:'📋'},{id:'notes_v',label:'Notes',icon:'📝'},
+  ],
+  prof:[
+    {s:'Principal'},{id:'dashboard',label:'Tableau de bord',icon:'📊'},{id:'messages',label:'Messagerie',icon:'✉️',badge:true},
+    {s:'Enseignement'},{id:'saisie_notes',label:'Saisie des notes',icon:'📝'},{id:'saisie_abs',label:'Saisie des absences',icon:'📋'},{id:'appel',label:'Faire l\'appel',icon:'📣'},{id:'edt_v',label:'Emploi du temps',icon:'📅'},
+  ],
+  eleve:[
+    {s:'Mon espace'},{id:'dashboard',label:'Tableau de bord',icon:'📊'},{id:'messages',label:'Messagerie',icon:'✉️',badge:true},
+    {id:'mes_notes',label:'Mes notes',icon:'📝'},{id:'mes_abs',label:'Mes absences',icon:'📋'},{id:'mes_pun',label:'Mes punitions',icon:'⚠️'},{id:'edt_v',label:'Emploi du temps',icon:'📅'},
+  ],
+  parent:[
+    {s:'Mes enfants'},{id:'dashboard',label:'Tableau de bord',icon:'📊'},{id:'messages',label:'Messagerie',icon:'✉️',badge:true},
+    {id:'enfants_notes',label:'Notes',icon:'📝'},{id:'enfants_abs',label:'Absences',icon:'📋'},{id:'enfants_pun',label:'Punitions',icon:'⚠️'},{id:'enfants_edt',label:'Emploi du temps',icon:'📅'},
+    {s:'Gestion'},{id:'inscrire_eleve',label:'Inscrire un élève',icon:'➕'},
+  ],
+  vie_scolaire:[
+    {s:'Principal'},{id:'dashboard',label:'Tableau de bord',icon:'📊'},{id:'messages',label:'Messagerie',icon:'✉️',badge:true},
+    {s:'Vie scolaire'},{id:'vs_absences',label:'Absences & justifs',icon:'📋'},{id:'vs_appel',label:'Registre des appels',icon:'📣'},{id:'vs_prof_absent',label:'Profs absents',icon:'🏥'},{id:'edt_v',label:'Emploi du temps',icon:'📅'},
+  ],
+};
+
+/* ══════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════ */
+async function init(){
+  // Vérifier si token reset dans l'URL
+  const hash=location.hash;
+  if(hash.includes('reset_token=')){
+    const token=new URLSearchParams(hash.replace('#','?')).get('reset_token');
+    if(token){document.getElementById('reset-token').value=token;showReset('step2');document.getElementById('auth-screen').style.display='flex';return;}
+  }
+  showLoading('Connexion à Supabase…');
+  try{
+    await reload();hideLoading();
+    const stored=sessionStorage.getItem('edu_u');
+    if(stored){const u=users.find(u=>u.login===stored);if(u){U=u;showApp();return;}}
+    document.getElementById('auth-screen').style.display='flex';
+    ['login-user','login-pass'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>e.key==='Enter'&&doLogin()));
+  }catch(e){
+    hideLoading();
+    const err=document.getElementById('auth-error');err.style.display='block';err.textContent='Erreur serveur : '+e.message;
+    document.getElementById('auth-screen').style.display='flex';
+  }
+}
+
+async function reload(){
+  const [u,cl,ma,no,ab,ms,ed,pu,pl]=await Promise.all([
+    SB.get('users','select=*&order=role'),SB.get('classes','select=*&order=nom'),SB.get('matieres','select=*&order=nom'),
+    SB.get('notes','select=*&order=created_at.desc'),SB.get('absences','select=*&order=date.desc'),
+    SB.get('messages','select=*&order=date.desc'),SB.get('emploi_du_temps','select=*'),
+    SB.get('punitions','select=*&order=created_at.desc'),SB.get('parent_eleve','select=*'),
+  ]);
+  users=u.map(x=>({...x,classeId:x.classe_id,passwordHash:x.password_hash}));
+  classes=cl;matieres=ma;
+  notes=no.map(x=>({...x,eleveLogin:x.eleve_login,matiereId:x.matiere_id,valeur:parseFloat(x.valeur),prof:x.prof_login}));
+  absences=ab.map(x=>({...x,eleveLogin:x.eleve_login,matiereId:x.matiere_id}));
+  messages=ms;
+  edt=ed.map(x=>({...x,classeId:x.classe_id,matiereId:x.matiere_id,profLogin:x.prof_login}));
+  punitions=pu.map(x=>({...x,eleveLogin:x.eleve_login,posePar:x.pose_par}));
+  parentLinks=pl;
+}
+
+/* ══════════════════════════════════════════════════
+   AUTH
+══════════════════════════════════════════════════ */
+function showReset(mode){
+  if(mode==='login'){
+    document.getElementById('login-panel').style.display='block';
+    document.getElementById('reset-panel').style.display='none';
+  }else if(mode==='forgot'){
+    document.getElementById('login-panel').style.display='none';
+    document.getElementById('reset-panel').style.display='block';
+    document.getElementById('reset-step1').style.display='block';
+    document.getElementById('reset-step2').style.display='none';
+  }else if(mode==='step2'){
+    document.getElementById('login-panel').style.display='none';
+    document.getElementById('reset-panel').style.display='block';
+    document.getElementById('reset-step1').style.display='none';
+    document.getElementById('reset-step2').style.display='block';
+  }
+}
+
+async function sendResetEmail(){
+  const login=document.getElementById('reset-login').value.trim();
+  const errEl=document.getElementById('reset-error'),okEl=document.getElementById('reset-ok');
+  errEl.style.display='none';okEl.style.display='none';
+  if(!login){errEl.style.display='block';errEl.textContent='Saisissez votre identifiant.';return;}
+  const u=users.find(x=>x.login===login);
+  if(!u||!u.email){errEl.style.display='block';errEl.textContent='Identifiant introuvable ou pas d\'email associé.';return;}
+  // Générer un token
+  const token=randToken();
+  const expires=new Date(Date.now()+3600000).toISOString(); // 1h
+  await SB.post('reset_tokens',{login,token,expires_at:expires,used:false});
+  // Simuler l'envoi email (afficher le lien en clair pour la démo)
+  const link=`${location.href.split('#')[0]}#reset_token=${token}`;
+  okEl.style.display='block';
+  okEl.innerHTML=`✅ Token généré ! En production, un e-mail serait envoyé à <strong>${u.email}</strong>.<br>
+    <span style="font-size:11px">Pour tester maintenant : <a href="${link}" style="color:var(--green);word-break:break-all">${link}</a></span>`;
+}
+
+async function doResetPassword(){
+  const token=document.getElementById('reset-token').value.trim();
+  const pwd=document.getElementById('new-pwd').value;
+  const pwd2=document.getElementById('new-pwd2').value;
+  const errEl=document.getElementById('newpwd-error');errEl.style.display='none';
+  if(!token||!pwd){errEl.style.display='block';errEl.textContent='Remplissez tous les champs.';return;}
+  if(pwd!==pwd2){errEl.style.display='block';errEl.textContent='Les mots de passe ne correspondent pas.';return;}
+  if(pwd.length<6){errEl.style.display='block';errEl.textContent='Le mot de passe doit faire au moins 6 caractères.';return;}
+  try{
+    const tokens=await SB.get('reset_tokens',`token=eq.${token}&used=eq.false`);
+    if(!tokens.length){errEl.style.display='block';errEl.textContent='Token invalide ou déjà utilisé.';return;}
+    const t=tokens[0];
+    if(new Date(t.expires_at)<new Date()){errEl.style.display='block';errEl.textContent='Ce lien a expiré. Faites une nouvelle demande.';return;}
+    const hash=await sha256(pwd);
+    const u=users.find(x=>x.login===t.login);
+    if(!u){errEl.style.display='block';errEl.textContent='Utilisateur introuvable.';return;}
+    await SB.patchQ('users',`login=eq.${t.login}`,{password_hash:hash});
+    await SB.patch('reset_tokens',t.id,{used:true});
+    await reload();
+    showReset('login');
+    document.getElementById('auth-ok').style.display='block';
+    document.getElementById('auth-ok').textContent='✅ Mot de passe modifié avec succès ! Vous pouvez vous connecter.';
+    history.replaceState(null,'',location.pathname);
+  }catch(e){errEl.style.display='block';errEl.textContent='Erreur : '+e.message;}
+}
+
+async function doLogin(){
+  const login=document.getElementById('login-user').value.trim(),pass=document.getElementById('login-pass').value;
+  const err=document.getElementById('auth-error'),btn=document.getElementById('login-btn');
+  err.style.display='none';
+  if(!login||!pass){err.style.display='block';err.textContent='Veuillez saisir vos identifiants.';return;}
+  btn.disabled=true;btn.textContent='Connexion…';
+  const hash=await sha256(pass);
+  const u=users.find(u=>u.login===login&&u.passwordHash===hash);
+  btn.disabled=false;btn.textContent='Se connecter →';
+  if(!u){err.style.display='block';err.textContent='Identifiants incorrects.';return;}
+  U=u;sessionStorage.setItem('edu_u',login);showApp();
+}
+function doLogout(){U=null;sessionStorage.removeItem('edu_u');document.getElementById('app').style.display='none';document.getElementById('auth-screen').style.display='flex';document.getElementById('login-user').value='';document.getElementById('login-pass').value='';}
+
+/* ══════════════════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════════════════ */
+function showApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('sb-name').textContent=`${U.prenom} ${U.nom}`;
+  const cl=classes.find(c=>c.id===U.classeId);
+  document.getElementById('sb-class').textContent=cl?cl.nom:ROLE_LABELS[U.role];
+  const b=document.getElementById('sb-badge');b.textContent=ROLE_LABELS[U.role];
+  b.style.cssText=`background:${ROLE_BG[U.role]};color:${ROLE_COLOR[U.role]}`;
+  msgUnread=messages.filter(m=>m.a===U.login&&!m.lu).length;
+  buildNav();buildPages();navigate('dashboard');
+}
+function buildNav(){
+  const items=NAV[U.role]||[];let h='';let open=false;
+  items.forEach(item=>{
+    if(item.s){if(open)h+='</div>';h+=`<div class="nav-section"><div class="nav-section-label">${item.s}</div>`;open=true;}
+    else{const nb=item.badge&&msgUnread>0?`<span class="nav-badge">${msgUnread}</span>`:'';
+      h+=`<div class="nav-item" id="nav-${item.id}" onclick="navigate('${item.id}')"><span class="icon">${item.icon}</span>${item.label}${nb}</div>`;}
+  });
+  if(open)h+='</div>';document.getElementById('sidebar-nav').innerHTML=h;
+}
+function buildPages(){
+  const PAGES={
+    admin:['dashboard','messages','users','classes','matieres','notes_v','absences_v','punitions_v','edt_v'],
+    proviseur:['dashboard','messages','edt_edit','punitions_pv','absences_v','notes_v'],
+    prof:['dashboard','messages','saisie_notes','saisie_abs','appel','edt_v'],
+    eleve:['dashboard','messages','mes_notes','mes_abs','mes_pun','edt_v'],
+    parent:['dashboard','messages','enfants_notes','enfants_abs','enfants_pun','enfants_edt','inscrire_eleve'],
+    vie_scolaire:['dashboard','messages','vs_absences','vs_appel','vs_prof_absent','edt_v'],
+  };
+  document.getElementById('main-content').innerHTML=(PAGES[U.role]||[]).map(id=>`<div class="page" id="pg-${id}"></div>`).join('');
+}
+function navigate(pid){
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  const ni=document.getElementById(`nav-${pid}`);if(ni)ni.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById(`pg-${pid}`);if(!pg)return;pg.classList.add('active');
+  const R={dashboard:pgDash,messages:pgMsg,users:pgUsers,classes:pgClasses,matieres:pgMatieres,
+    notes_v:pgNotesV,absences_v:pgAbsV,punitions_v:pgPunV,punitions_pv:pgPunPV,
+    edt_v:pgEdtV,edt_edit:pgEdtEdit,saisie_notes:pgSaisieNotes,saisie_abs:pgSaisieAbs,
+    appel:pgAppel,mes_notes:pgMesNotes,mes_abs:pgMesAbs,mes_pun:pgMesPun,
+    enfants_notes:pgEnfantsNotes,enfants_abs:pgEnfantsAbs,enfants_pun:pgEnfantsPun,
+    enfants_edt:pgEnfantsEdt,inscrire_eleve:pgInscrireEleve,
+    vs_absences:pgVsAbsences,vs_appel:pgVsAppel,vs_prof_absent:pgVsProfAbsent,
+  };
+  if(R[pid])R[pid](pg);
+}
+
+/* ══════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════ */
+const td=()=>new Date().toISOString().split('T')[0];
+function sc(icon,label,val,bg,color){return`<div class="stat-card"><div class="stat-icon" style="background:${bg};color:${color}">${icon}</div><div><div class="stat-value">${val}</div><div class="stat-label">${label}</div></div></div>`}
+function ac(v){if(v===null||v===undefined)return'—';const c=v>=14?'avg-high':v>=10?'avg-mid':'avg-low';return`<span class="avg-chip ${c}">${typeof v==='number'?v.toFixed(1):v}</span>`}
+function moy(ns){if(!ns.length)return null;let s=0,c=0;ns.forEach(n=>{s+=n.valeur*(n.coef||1);c+=(n.coef||1)});return c?s/c:null}
+const uName=l=>{const u=users.find(u=>u.login===l);return u?u.prenom+' '+u.nom:'?'};
+const matCode=id=>{const m=matieres.find(m=>m.id===id);return m?`<span class="badge badge-blue">${m.code}</span>`:'?'};
+const punBadge=type=>{const t=PUNITION_TYPES.find(t=>t.val===type)||{label:type,badge:'badge-blue'};return`<span class="badge ${t.badge}">${t.label}</span>`};
+// Enfants du parent connecté
+const mesEnfants=()=>parentLinks.filter(l=>l.parent_login===U.login).map(l=>users.find(u=>u.login===l.eleve_login)).filter(Boolean);
+function showLoading(msg='Chargement…'){document.getElementById('loading-msg').textContent=msg;document.getElementById('loading').style.display='flex';}
+function hideLoading(){document.getElementById('loading').style.display='none';}
+let tt;
+function toast(msg,icon='✓'){const el=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;document.getElementById('toast-icon').textContent=icon;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2800);}
+function showModal(title,body,actions=[]){
+  const btns=actions.map(a=>`<button class="btn ${a.cls||'btn-primary'}" onclick="(${a.fn})()">${a.label}</button>`).join('');
+  document.getElementById('modal-box').innerHTML=`<div class="modal-header"><span class="modal-title">${title}</span><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body">${body}</div><div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Annuler</button>${btns}</div>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(e){if(e&&e.target!==document.getElementById('modal-overlay'))return;document.getElementById('modal-overlay').classList.remove('open');}
+
+/* ══════════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════════ */
+function pgDash(el){
+  const R={admin:dashAdmin,proviseur:dashProv,prof:dashProf,eleve:dashEleve,parent:dashParent,vie_scolaire:dashVS};
+  if(R[U.role])R[U.role](el);
+}
+function dashAdmin(el){
+  el.innerHTML=`<div class="page-header"><div class="page-title">Tableau de bord</div><div class="page-subtitle">${new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div></div>
+  <div class="grid-4" style="margin-bottom:16px">
+    ${sc('👥','Élèves',users.filter(u=>u.role==='eleve').length,'var(--accent-bg)','var(--accent)')}
+    ${sc('👨‍🏫','Professeurs',users.filter(u=>u.role==='prof').length,'var(--purple-bg)','var(--purple)')}
+    ${sc('👪','Parents',users.filter(u=>u.role==='parent').length,'var(--orange-bg)','var(--orange)')}
+    ${sc('⚠️','Punitions actives',punitions.filter(p=>!p.levee).length,'var(--rose-bg)','var(--rose)')}
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-header"><span class="card-title">Absences récentes</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Élève</th><th>Date</th><th>Durée</th><th>Statut</th></tr></thead><tbody>
+    ${absences.slice(0,5).map(a=>`<tr><td class="td-bold">${uName(a.eleveLogin)}</td><td>${a.date}</td><td>${a.duree}h</td><td><span class="badge ${a.justifie?'badge-green':'badge-red'}">${a.justifie?'Justifiée':'Non just.'}</span></td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Punitions actives</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Élève</th><th>Type</th><th>Date</th></tr></thead><tbody>
+    ${punitions.filter(p=>!p.levee).slice(0,5).map(p=>`<tr><td class="td-bold">${uName(p.eleveLogin)}</td><td>${punBadge(p.type)}</td><td>${p.date}</td></tr>`).join('')}
+    </tbody></table></div></div>
+  </div>`;
+}
+function dashProv(el){
+  el.innerHTML=`<div class="page-header"><div class="page-title">Bonjour, ${U.prenom} 👋</div><div class="page-subtitle">Proviseur — ${new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div></div>
+  <div class="grid-3" style="margin-bottom:16px">
+    ${sc('⚠️','Punitions actives',punitions.filter(p=>!p.levee).length,'var(--rose-bg)','var(--rose)')}
+    ${sc('📋','Absences non just.',absences.filter(a=>!a.justifie).length,'var(--yellow-bg)','var(--yellow)')}
+    ${sc('👥','Élèves total',users.filter(u=>u.role==='eleve').length,'var(--accent-bg)','var(--accent)')}
+  </div>
+  <div class="card"><div class="card-header"><span class="card-title">Punitions actives</span><button class="btn btn-rose btn-sm" onclick="navigate('punitions_pv')">Gérer →</button></div>
+  <div class="table-wrap"><table><thead><tr><th>Élève</th><th>Type</th><th>Motif</th><th>Date</th></tr></thead><tbody>
+  ${punitions.filter(p=>!p.levee).slice(0,8).map(p=>`<tr><td class="td-bold">${uName(p.eleveLogin)}</td><td>${punBadge(p.type)}</td><td style="font-size:11.5px">${p.motif||'—'}</td><td>${p.date}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function dashProf(el){
+  const mn=notes.filter(n=>n.prof===U.login);
+  el.innerHTML=`<div class="page-header"><div class="page-title">Bonjour, ${U.prenom} 👋</div><div class="page-subtitle">${new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div></div>
+  <div class="grid-3" style="margin-bottom:16px">
+    ${sc('📝','Notes saisies',mn.length,'var(--accent-bg)','var(--accent)')}
+    ${sc('📋','Absences signalées',absences.length,'var(--yellow-bg)','var(--yellow)')}
+    ${sc('👥','Élèves',users.filter(u=>u.role==='eleve').length,'var(--green-bg)','var(--green)')}
+  </div>
+  <div class="card"><div class="card-header"><span class="card-title">Dernières notes saisies</span></div>
+  <div class="table-wrap"><table><thead><tr><th>Élève</th><th>Matière</th><th>Intitulé</th><th>Note</th><th>Date</th></tr></thead><tbody>
+  ${mn.slice(0,8).map(n=>`<tr><td class="td-bold">${uName(n.eleveLogin)}</td><td>${matCode(n.matiereId)}</td><td>${n.intitule||''}</td><td>${ac(n.valeur)}</td><td style="color:var(--text2)">${n.date}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function dashEleve(el){
+  const mn=notes.filter(n=>n.eleveLogin===U.login),ma=absences.filter(a=>a.eleveLogin===U.login);
+  const mg=moy(mn),cl=classes.find(c=>c.id===U.classeId);
+  el.innerHTML=`<div class="page-header"><div class="page-title">Bonjour, ${U.prenom} 👋</div><div class="page-subtitle">${cl?cl.nom+' — ':''}${new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div></div>
+  <div class="grid-4" style="margin-bottom:16px">
+    ${sc('📊','Moyenne générale',mg!==null?mg.toFixed(2)+'/20':'—','var(--accent-bg)','var(--accent)')}
+    ${sc('📝','Notes',mn.length,'var(--purple-bg)','var(--purple)')}
+    ${sc('📋','Absences',ma.length,'var(--yellow-bg)','var(--yellow)')}
+    ${sc('✉️','Msg non lus',messages.filter(m=>m.a===U.login&&!m.lu).length,'var(--green-bg)','var(--green)')}
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-header"><span class="card-title">Dernières notes</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Matière</th><th>Intitulé</th><th>Note</th><th>Coef.</th></tr></thead><tbody>
+    ${mn.slice(0,6).map(n=>`<tr><td>${matCode(n.matiereId)}</td><td class="td-bold">${n.intitule||'—'}</td><td>${ac(n.valeur)}</td><td style="color:var(--text2)">${n.coef}</td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Moyennes par matière</span></div><div class="card-body">
+    ${matieres.map(mat=>{const ns=mn.filter(n=>n.matiereId===mat.id);if(!ns.length)return'';const mv=moy(ns);
+      return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px"><span style="font-size:12.5px;flex:1;font-weight:500">${mat.nom}</span>${ac(mv)}</div>`;}).join('')}
+    </div></div>
+  </div>`;
+}
+function dashParent(el){
+  const enfants=mesEnfants();
+  el.innerHTML=`<div class="page-header"><div class="page-title">Bonjour, ${U.prenom} 👋</div><div class="page-subtitle">Espace parent — ${new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div></div>
+  ${!enfants.length?`<div class="card"><div class="card-body" style="text-align:center;padding:40px;color:var(--text2)">
+    <div style="font-size:36px;margin-bottom:10px">👨‍👩‍👧</div>
+    <div style="font-size:15px;font-weight:600;margin-bottom:8px">Aucun enfant associé</div>
+    <p style="font-size:13px;margin-bottom:16px">Rendez-vous dans <strong>Inscrire un élève</strong> pour lier un compte élève à votre espace parent.</p>
+    <button class="btn btn-primary" onclick="navigate('inscrire_eleve')">➕ Inscrire un élève</button>
+  </div></div>`
+  :enfants.map(e=>{
+    const mn=notes.filter(n=>n.eleveLogin===e.login),ma=absences.filter(a=>a.eleveLogin===e.login&&!a.justifie),mp=punitions.filter(p=>p.eleveLogin===e.login&&!p.levee);
+    const mg=moy(mn),cl=classes.find(c=>c.id===e.classeId);
+    return`<div class="card" style="margin-bottom:14px">
+      <div class="card-header" style="background:${e.color}12;border-bottom-color:${e.color}30">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:34px;height:34px;border-radius:50%;background:${e.color}22;display:flex;align-items:center;justify-content:center;font-weight:700;color:${e.color}">${e.prenom[0]+e.nom[0]}</div>
+          <div><div style="font-weight:700;font-size:14px">${e.prenom} ${e.nom}</div><div style="font-size:11.5px;color:var(--text2)">${cl?cl.nom:'—'}</div></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          ${mg!==null?`<span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px;background:var(--accent-bg);color:var(--accent)">Moy. ${mg.toFixed(2)}/20</span>`:''}
+          ${ma.length?`<span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px;background:var(--red-bg);color:var(--red)">${ma.length} abs. non just.</span>`:''}
+          ${mp.length?`<span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px;background:var(--rose-bg);color:var(--rose)">${mp.length} punition(s)</span>`:''}
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="grid-3">
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Dernières notes</div>
+            ${mn.slice(0,4).map(n=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:12px">${matieres.find(m=>m.id===n.matiereId)?.code||'?'} — ${n.intitule||''}</span>${ac(n.valeur)}</div>`).join('')||'<span style="color:var(--text3);font-size:12px">—</span>'}
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Absences récentes</div>
+            ${absences.filter(a=>a.eleveLogin===e.login).slice(0,4).map(a=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:12px">${a.date}</span><span class="badge ${a.justifie?'badge-green':'badge-red'}">${a.justifie?'Just.':'Non just.'}</span></div>`).join('')||'<span style="color:var(--text3);font-size:12px">Aucune</span>'}
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Punitions</div>
+            ${punitions.filter(p=>p.eleveLogin===e.login).slice(0,4).map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span style="font-size:12px">${punBadge(p.type)}</span><span class="badge ${p.levee?'badge-green':'badge-red'}">${p.levee?'Levée':'Active'}</span></div>`).join('')||'<span style="color:var(--text3);font-size:12px">Aucune 🎉</span>'}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('')}`;
+}
+function dashVS(el){
+  const nj=absences.filter(a=>!a.justifie);
+  el.innerHTML=`<div class="page-header"><div class="page-title">Bonjour, ${U.prenom} 👋</div><div class="page-subtitle">Vie scolaire — ${new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div></div>
+  <div class="grid-4" style="margin-bottom:16px">
+    ${sc('📋','Absences aujourd\'hui',absences.filter(a=>a.date===td()).length,'var(--yellow-bg)','var(--yellow)')}
+    ${sc('⚠️','Non justifiées',nj.length,'var(--red-bg)','var(--red)')}
+    ${sc('✅','Justifiées',absences.filter(a=>a.justifie).length,'var(--green-bg)','var(--green)')}
+    ${sc('👥','Élèves',users.filter(u=>u.role==='eleve').length,'var(--accent-bg)','var(--accent)')}
+  </div>
+  <div class="card"><div class="card-header"><span class="card-title">Absences non justifiées</span><button class="btn btn-teal btn-sm" onclick="navigate('vs_absences')">Tout gérer →</button></div>
+  <div class="table-wrap"><table><thead><tr><th>Élève</th><th>Date</th><th>Durée</th><th>Matière</th><th>Action</th></tr></thead><tbody>
+  ${nj.slice(0,8).map(a=>`<tr><td class="td-bold">${uName(a.eleveLogin)}</td><td>${a.date}</td><td>${a.duree}h</td><td>${matCode(a.matiereId)}</td>
+    <td><button class="btn btn-teal btn-sm" onclick="justifAbsVS(${a.id})">Justifier</button></td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--text3)">Aucune absence non justifiée 🎉</td></tr>'}
+  </tbody></table></div></div>`;
+}
+
+/* ══════════════════════════════════════════════════
+   MESSAGERIE (commune à tous les rôles)
+══════════════════════════════════════════════════ */
+function pgMsg(el){
+  const recu=messages.filter(m=>m.a===U.login).sort((a,b)=>b.date.localeCompare(a.date));
+  el.innerHTML=`<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between">
+    <div><div class="page-title">Messagerie</div><div class="page-subtitle">${recu.filter(m=>!m.lu).length} message(s) non lu(s)</div></div>
+    <button class="btn btn-primary" onclick="openNewMsg()">✏️ Nouveau message</button>
+  </div></div>
+  <div class="grid-2" style="align-items:start">
+    <div class="card"><div class="card-header"><span class="card-title">Boîte de réception</span></div>
+    <div class="msg-list">${recu.length?recu.map(m=>{const s=users.find(u=>u.login===m.de);const ini=s?(s.prenom[0]+s.nom[0]).toUpperCase():'?';
+      return`<div class="msg-item ${m.lu?'':'unread'}" onclick="openMsg(${m.id})">
+        <div class="msg-avatar" style="background:${s?.color||'#6B7280'}22;color:${s?.color||'#6B7280'}">${ini}</div>
+        <div style="flex:1;min-width:0"><div class="msg-from">${s?s.prenom+' '+s.nom:'?'}</div><div class="msg-subject">${m.sujet}</div></div>
+        <div class="msg-date">${m.date}</div></div>`;}).join(''):'<div style="padding:20px;text-align:center;color:var(--text3)">Aucun message</div>'}
+    </div></div>
+    <div class="card" id="msg-detail"><div style="padding:36px;text-align:center;color:var(--text3)"><div style="font-size:32px;margin-bottom:8px">✉️</div>Sélectionnez un message</div></div>
+  </div>`;
+}
+async function openMsg(id){
+  const msg=messages.find(m=>m.id===id);if(!msg)return;
+  if(!msg.lu&&msg.a===U.login){await SB.patch('messages',id,{lu:true});msg.lu=true;msgUnread=Math.max(0,msgUnread-1);const nb=document.querySelector('#nav-messages .nav-badge');if(nb){if(msgUnread>0)nb.textContent=msgUnread;else nb.remove();}}
+  const s=users.find(u=>u.login===msg.de);const ini=s?(s.prenom[0]+s.nom[0]).toUpperCase():'?';
+  document.getElementById('msg-detail').innerHTML=`
+    <div class="card-header"><span class="card-title">${msg.sujet}</span><span style="font-size:11.5px;color:var(--text3)">${msg.date}</span></div>
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+        <div class="msg-avatar" style="background:${s?.color||'#6B7280'}22;color:${s?.color||'#6B7280'}">${ini}</div>
+        <div><div style="font-weight:600;font-size:13px">${s?s.prenom+' '+s.nom:'?'}</div><div style="font-size:11.5px;color:var(--text2)">→ ${U.prenom} ${U.nom}</div></div>
+      </div>
+      <p style="font-size:13.5px;line-height:1.7">${msg.corps}</p>
+    </div>`;
+}
+function openNewMsg(){
+  const opts=users.filter(u=>u.login!==U.login).map(u=>`<option value="${u.login}">${u.prenom} ${u.nom} (${ROLE_LABELS[u.role]||u.role})</option>`).join('');
+  showModal('Nouveau message',`<div class="form-grid">
+    <div class="form-group"><label>Destinataire</label><select id="msg-to" class="form-control">${opts}</select></div>
+    <div class="form-group"><label>Sujet</label><input id="msg-sub" class="form-control"></div>
+    <div class="form-group"><label>Message</label><textarea id="msg-body" class="form-control" rows="5" style="resize:vertical"></textarea></div>
+  </div>`,[{label:'Envoyer',fn:sendMsg}]);
+}
+async function sendMsg(){
+  const to=document.getElementById('msg-to').value,sub=document.getElementById('msg-sub').value.trim(),body=document.getElementById('msg-body').value.trim();
+  if(!sub||!body){toast('Remplissez tous les champs','⚠️');return;}
+  await SB.post('messages',{de:U.login,a:to,sujet:sub,corps:body,date:td(),lu:false});
+  await reload();closeModal();navigate('messages');toast('Message envoyé !','✉️');
+}
+
+/* ══════════════════════════════════════════════════
+   ADMIN — UTILISATEURS / CLASSES / MATIÈRES
+══════════════════════════════════════════════════ */
+function pgUsers(el){
+  el.innerHTML=`<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between">
+    <div><div class="page-title">Utilisateurs</div><div class="page-subtitle">${users.length} comptes</div></div>
+    <button class="btn btn-primary" onclick="openAddUser()">+ Ajouter</button>
+  </div></div>
+  <div class="card"><div class="table-wrap"><table>
+    <thead><tr><th>Nom</th><th>Identifiant</th><th>Email</th><th>Rôle</th><th>Classe</th><th></th></tr></thead>
+    <tbody>${users.map(u=>{const cl=classes.find(c=>c.id===u.classeId);return`<tr>
+      <td class="td-bold">${u.prenom} ${u.nom}</td>
+      <td><code style="font-family:var(--mono);font-size:11.5px;background:var(--surface2);padding:2px 6px;border-radius:4px">${u.login}</code></td>
+      <td style="color:var(--text2);font-size:12px">${u.email||'—'}</td>
+      <td><span class="badge ${ROLE_BADGE[u.role]}">${ROLE_LABELS[u.role]}</span></td>
+      <td>${cl?cl.nom:'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="delUser(${u.id})">✕</button></td>
+    </tr>`;}).join('')}</tbody>
+  </table></div></div>`;
+}
+function openAddUser(){
+  const co='<option value="">— aucune —</option>'+classes.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
+  showModal('Nouvel utilisateur',`<div class="form-grid form-grid-2">
+    <div class="form-group"><label>Prénom</label><input id="u-pr" class="form-control"></div>
+    <div class="form-group"><label>Nom</label><input id="u-nm" class="form-control"></div>
+    <div class="form-group"><label>Identifiant</label><input id="u-lg" class="form-control"></div>
+    <div class="form-group"><label>Email</label><input id="u-em" class="form-control" type="email"></div>
+    <div class="form-group"><label>Mot de passe</label><input id="u-pw" class="form-control" type="password" value="password123"></div>
+    <div class="form-group"><label>Rôle</label><select id="u-rl" class="form-control">
+      <option value="eleve">Élève</option><option value="prof">Professeur</option>
+      <option value="parent">Parent</option><option value="vie_scolaire">Vie Scolaire</option>
+      <option value="proviseur">Proviseur</option><option value="admin">Admin</option>
+    </select></div>
+    <div class="form-group"><label>Classe</label><select id="u-cl" class="form-control">${co}</select></div>
+  </div>`,[{label:'Créer',fn:addUser}]);
+}
+async function addUser(){
+  const pr=document.getElementById('u-pr').value.trim(),nm=document.getElementById('u-nm').value.trim(),
+    lg=document.getElementById('u-lg').value.trim(),em=document.getElementById('u-em').value.trim(),
+    pw=document.getElementById('u-pw').value,rl=document.getElementById('u-rl').value,
+    cl=parseInt(document.getElementById('u-cl').value)||null;
+  if(!pr||!nm||!lg||!pw){toast('Champs manquants','⚠️');return;}
+  if(users.find(u=>u.login===lg)){toast('Identifiant déjà utilisé','⚠️');return;}
+  const hash=await sha256(pw);
+  const cols=['#2563EB','#7C3AED','#16A34A','#D97706','#DC2626','#0891B2','#EA580C','#DB2777'];
+  await SB.post('users',{login:lg,nom:nm,prenom:pr,role:rl,classe_id:cl,email:em||null,color:cols[~~(Math.random()*cols.length)],password_hash:hash});
+  await reload();closeModal();pgUsers(document.getElementById('pg-users'));toast('Utilisateur créé !','✅');
+}
+async function delUser(id){if(!confirm('Supprimer ?'))return;await SB.del('users',id);await reload();pgUsers(document.getElementById('pg-users'));toast('Supprimé','🗑️');}
+
+function pgClasses(el){
+  el.innerHTML=`<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between"><div class="page-title">Classes</div><button class="btn btn-primary" onclick="openAddClass()">+ Ajouter</button></div></div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Nom</th><th>Niveau</th><th>Année</th><th>Élèves</th><th></th></tr></thead>
+  <tbody>${classes.map(c=>`<tr><td class="td-bold">${c.nom}</td><td>${c.niveau}</td><td>${c.annee}</td>
+    <td>${users.filter(u=>u.classeId===c.id).length}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="delClass(${c.id})">✕</button></td></tr>`).join('')}</tbody></table></div></div>`;
+}
+function openAddClass(){showModal('Nouvelle classe',`<div class="form-grid">
+  <div class="form-group"><label>Nom</label><input id="cl-n" class="form-control" placeholder="ex: 3ème A"></div>
+  <div class="form-group"><label>Niveau</label><input id="cl-v" class="form-control" placeholder="ex: 3ème"></div>
+  <div class="form-group"><label>Année</label><input id="cl-a" class="form-control" placeholder="2024-2025"></div>
+</div>`,[{label:'Créer',fn:async()=>{
+  const n=document.getElementById('cl-n').value.trim(),v=document.getElementById('cl-v').value.trim(),a=document.getElementById('cl-a').value.trim();
+  if(!n||!v||!a){toast('Champs manquants','⚠️');return;}
+  await SB.post('classes',{nom:n,niveau:v,annee:a});await reload();closeModal();pgClasses(document.getElementById('pg-classes'));toast('Classe créée','✅');
+}}]);}
+async function delClass(id){if(!confirm('Supprimer ?'))return;await SB.del('classes',id);await reload();pgClasses(document.getElementById('pg-classes'));}
+
+function pgMatieres(el){
+  el.innerHTML=`<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between"><div class="page-title">Matières</div><button class="btn btn-primary" onclick="openAddMat()">+ Ajouter</button></div></div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Matière</th><th>Code</th><th>Couleur</th><th></th></tr></thead>
+  <tbody>${matieres.map(m=>`<tr><td class="td-bold">${m.nom}</td><td><span class="badge badge-blue">${m.code}</span></td>
+    <td><span style="display:inline-block;width:18px;height:18px;border-radius:4px;background:${m.couleur}"></span></td>
+    <td><button class="btn btn-danger btn-sm" onclick="delMat(${m.id})">✕</button></td></tr>`).join('')}</tbody></table></div></div>`;
+}
+function openAddMat(){showModal('Nouvelle matière',`<div class="form-grid">
+  <div class="form-group"><label>Nom</label><input id="mt-n" class="form-control"></div>
+  <div class="form-group"><label>Code</label><input id="mt-c" class="form-control" style="text-transform:uppercase"></div>
+  <div class="form-group"><label>Couleur</label><input id="mt-k" class="form-control" type="color" value="#2563EB"></div>
+</div>`,[{label:'Créer',fn:async()=>{
+  const n=document.getElementById('mt-n').value.trim(),c=document.getElementById('mt-c').value.trim().toUpperCase(),k=document.getElementById('mt-k').value;
+  if(!n||!c){toast('Champs manquants','⚠️');return;}
+  await SB.post('matieres',{nom:n,code:c,couleur:k});await reload();closeModal();pgMatieres(document.getElementById('pg-matieres'));toast('Matière créée','✅');
+}}]);}
+async function delMat(id){await SB.del('matieres',id);await reload();pgMatieres(document.getElementById('pg-matieres'));}
+
+/* ══════════════════════════════════════════════════
+   NOTES / ABSENCES / PUNITIONS (vues communes)
+══════════════════════════════════════════════════ */
+function pgNotesV(el){
+  el.innerHTML=`<div class="page-header"><div class="page-title">Notes</div></div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Élève</th><th>Matière</th><th>Intitulé</th><th>Note</th><th>Coef.</th><th>Date</th><th>Prof</th></tr></thead>
+  <tbody>${notes.map(n=>{const p=users.find(u=>u.login===n.prof);return`<tr><td class="td-bold">${uName(n.eleveLogin)}</td><td>${matCode(n.matiereId)}</td><td>${n.intitule||''}</td><td>${ac(n.valeur)}</td><td>${n.coef}</td><td style="color:var(--text2)">${n.date}</td><td style="color:var(--text2)">${p?p.prenom+' '+p.nom:'?'}</td></tr>`;}).join('')}</tbody></table></div></div>`;
+}
+function pgAbsV(el){
+  const canJ=U.role==='admin'||U.role==='proviseur'||U.role==='vie_scolaire';
+  el.innerHTML=`<div class="page-header"><div class="page-title">Absences</div></div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Élève</th><th>Date</th><th>Heure</th><th>Durée</th><th>Matière</th><th>Statut</th><th>Motif</th>${canJ?'<th>Action</th>':''}</tr></thead>
+  <tbody>${absences.map(a=>`<tr><td class="td-bold">${uName(a.eleveLogin)}</td><td>${a.date}</td><td>${a.heure||'—'}</td><td>${a.duree}h</td><td>${matCode(a.matiereId)}</td>
+    <td><span class="badge ${a.justifie?'badge-green':'badge-red'}">${a.justifie?'Justifiée':'Non just.'}</span></td>
+    <td style="color:var(--text2)">${a.motif||'—'}</td>
+    ${canJ?`<td>${!a.justifie?`<button class="btn btn-teal btn-sm" onclick="justifAbsVS(${a.id})">Justifier</button>`:'—'}</td>`:''}</tr>`).join('')}</tbody></table></div></div>`;
+}
+async function justifAbsVS(id){
+  const motif=prompt('Motif de justification :');if(!motif)return;
+  await SB.patch('absences',id,{justifie:true,motif});await reload();
+  const pid=U.role==='vie_scolaire'?'vs_absences':'absences_v';
+  const p=document.getElementById(`pg-${pid}`);if(p){U.role==='vie_scolaire'?pgVsAbsences(p):pgAbsV(p);}
+  toast('Absence justifiée','✅');
+}
+
+function pgPunV(el){renderPunTable(el,'punitions_v');}
+function pgPunPV(el){renderPunTable(el,'punitions_pv');}
+function renderPunTable(el,pid){
+  const canM=U.role==='admin'||U.role==='proviseur';
+  el.innerHTML=`<div class="page-header"><div style="display:flex;align-items:center;justify-content:space-between">
+    <div><div class="page-title">Punitions</div><div class="page-subtitle">${punitions.filter(p=>!p.levee).length} active(s)</div></div>
+    ${canM?`<button class="btn btn-rose" onclick="openAddPun()">⚠️ Nouvelle punition</button>`:''}
+  </div></div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Élève</th><th>Type</th><th>Motif</th><th>Détail</th><th>Date</th><th>Posé par</th><th>Statut</th>${canM?'<th></th>':''}</tr></thead>
+  <tbody>${punitions.map(p=>`<tr><td class="td-bold">${uName(p.eleveLogin)}</td><td>${punBadge(p.type)}</td>
+    <td style="max-width:160px;font-size:11.5px">${p.motif||'—'}</td><td style="color:var(--text2);font-size:11.5px">${p.detail||'—'}</td>
+    <td>${p.date}</td><td style="color:var(--text2)">${uName(p.posePar)}</td>
+    <td><span class="badge ${p.levee?'badge-green':'badge-red'}">${p.levee?'Levée':'Active'}</span></td>
+    ${canM?`<td style="white-space:nowrap">${!p.levee?`<button class="btn btn-teal btn-sm" onclick="leverPun(${p.id})">Lever</button> `:''}
+      <button class="btn btn-danger btn-sm" onclick="delPun(${p.id})">✕</button></td>`:''}</tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function openAddPun(){
+  const eo=users.filter(u=>u.role==='eleve').map(u=>`<option value="${u.login}">${u.prenom} ${u.nom}</option>`).join('');
+  const to=PUNITION_TYPES.map(t=>`<option value="${t.val}">${t.label}</option>`).join('');
+  showModal('Nouvelle punition',`<div class="form-grid">
+    <div class="form-group"><label>Élève</label><select id="pn-el" class="form-control">${eo}</select></div>
+    <div class="form-group"><label>Type</label><select id="pn-ty" class="form-control">${to}</select></div>
+    <div class="form-group"><label>Motif</label><input id="pn-mo" class="form-control"></div>
+    <div class="form-group"><label>Détail (date/salle)</label><input id="pn-de" class="form-control"></div>
+    <div class="form-group"><label>Date</label><input id="pn-dt" class="form-control" type="date" value="${td()}"></div>
+  </div>`,[{label:'Enregistrer',fn:async()=>{
+    const el=document.getElementById('pn-el').value,ty=document.getElementById('pn-ty').value,
+      mo=document.getElementById('pn-mo').value.trim(),de=document.getElementById('pn-de').value.trim(),dt=document.getElementById('pn-dt').value;
+    await SB.post('punitions',{eleve_login:el,type:ty,motif:mo,detail:de,date:dt,pose_par:U.login,levee:false});
+    await reload();closeModal();
+    const pid=U.role==='proviseur'?'punitions_pv':'punitions_v';
+    const p=document.getElementById(`pg-${pid}`);if(p)renderPunTable(p,pid);toast('Punition enregistrée','⚠️');
+  }}]);
+}
+async function leverPun(id){await SB.patch('punitions',id,{levee:true});await reload();const pid=U.role==='proviseur'?'punitions_pv':'punitions_v';const p=document.getElementById(`pg-${pid}`);if(p)renderPunTable(p,pid);toast('Levée','✅');}
+async function delPun(id){if(!confirm('Supprimer ?'))return;await SB.del('punitions',id);await reload();const pid=U.role==='proviseur'?'punitions_pv':'punitions_v';const p=document.getElementById(`pg-${pid}`);if(p)renderPunTable(p,pid);}
+
+/* ══════════════════════════════════════════════════
+   EMPLOI DU TEMPS
+══════════════════════════════════════════════════ */
+function buildEdtGrid(cid,editable){
+  const f=edt.filter(e=>e.classeId===cid);
+  let h=`<div class="edt-grid"><div class="edt-header"></div>`;
+  JOURS.forEach(j=>h+=`<div class="edt-header">${j}</div>`);
+  SLOTS.forEach((slot,si)=>{
+    h+=`<div class="edt-time">${slot}</div>`;
+    JOURS.forEach((_,ji)=>{
+      const l=f.find(e=>e.jour===ji&&e.slot===si),mat=l?matieres.find(m=>m.id===l.matiereId):null,col=mat?.couleur||'#6B7280';
+      if(l){h+=`<div class="edt-cell${editable?' editable':''}">
+        <div class="edt-lesson" style="background:${col}18;border-left:3px solid ${col}">
+          <div class="edt-lesson-name" style="color:${col}">${mat?.nom||'?'}</div>
+          <div class="edt-lesson-room" style="color:${col}">${l.salle||''}</div>
+        </div>
+        ${editable?`<div style="position:absolute;top:2px;right:2px"><button style="width:15px;height:15px;font-size:8px;background:var(--red-bg);color:var(--red);border-radius:3px;border:none;cursor:pointer" onclick="delCreneau(${l.id})">✕</button></div>`:''}
+      </div>`;}
+      else{h+=`<div class="edt-cell${editable?' editable':''}" ${editable?`onclick="addCreneau(${cid},${ji},${si})"`:''} title="${editable?'Cliquer pour ajouter':''}"></div>`;}
+    });
+  });
+  return h+'</div>';
+}
+function pgEdtV(el){
+  let sel='';
+  if(U.role==='admin'||U.role==='proviseur'||U.role==='vie_scolaire'){
+    sel=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <label style="font-size:12.5px;color:var(--text2)">Classe :</label>
+      <select class="form-control" style="width:140px" id="edt-cls" onchange="edtClass=parseInt(this.value);pgEdtV(document.getElementById('pg-edt_v'))">
+        ${classes.map(c=>`<option value="${c.id}" ${c.id===edtClass?'selected':''}>${c.nom}</option>`).join('')}
+      </select></div>`;
+  }
+  const cid=U.classeId||edtClass||1;
+  el.innerHTML=`<div class="page-header"><div class="page-title">Emploi du temps</div></div>${sel}${buildEdtGrid(cid,false)}`;
+}
+function pgEdtEdit(el){
+  el.innerHTML=`<div class="page-header"><div class="page-title">Modifier les EDT</div>
+    <div class="page-subtitle">Cliquez sur une case vide pour ajouter, sur ✕ pour supprimer</div></div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+    <label style="font-size:12.5px;color:var(--text2)">Classe :</label>
+    <select class="form-control" style="width:140px" id="edt-edit-cls" onchange="edtClass=parseInt(this.value);pgEdtEdit(document.getElementById('pg-edt_edit'))">
+      ${classes.map(c=>`<option value="${c.id}" ${c.id===edtClass?'selected':''}>${c.nom}</option>`).join('')}
+    </select></div>
+  ${buildEdtGrid(edtClass,true)}`;
+}
+function addCreneau(cid,jour,slot){
+  const mo=matieres.map(m=>`<option value="${m.id}">${m.nom}</option>`).join('');
+  const po=users.filter(u=>u.role==='prof').map(u=>`<option value="${u.login}">${u.prenom} ${u.nom}</option>`).join('');
+  showModal('Ajouter un cours',`<div class="form-grid">
+    <div class="form-group"><label>Matière</label><select id="ec-mt" class="form-control">${mo}</select></div>
+    <div class="form-group"><label>Professeur</label><select id="ec-pr" class="form-control">${po}</select></div>
+    <div class="form-group"><label>Salle</label><input id="ec-sl" class="form-control"></div>
+  </div>`,[{label:'Ajouter',fn:async()=>{
+    const mt=parseInt(document.getElementById('ec-mt').value),pr=document.getElementById('ec-pr').value,sl=document.getElementById('ec-sl').value.trim();
+    await SB.post('emploi_du_temps',{jour,slot,classe_id:cid,matiere_id:mt,prof_login:pr,salle:sl});
+    await reload();closeModal();pgEdtEdit(document.getElementById('pg-edt_edit'));toast('Cours ajouté','📅');
+  }}]);
+}
+async function delCreneau(id){await SB.del('emploi_du_temps',id);await reload();pgEdtEdit(document.getElementById('pg-edt_edit'));}
+
+/* ══════════════════════════════════════════════════
+   PROF — SAISIE NOTES / ABSENCES / APPEL
+══════════════════════════════════════════════════ */
+function pgSaisieNotes(el){
+  const eo=users.filter(u=>u.role==='eleve').map(u=>`<option value="${u.login}">${u.prenom} ${u.nom}</option>`).join('');
+  const mo=matieres.map(m=>`<option value="${m.id}">${m.nom}</option>`).join('');
+  el.innerHTML=`<div class="page-header"><div class="page-title">Saisie des notes</div></div>
+  <div class="grid-2" style="align-items:start">
+    <div class="card"><div class="card-header"><span class="card-title">Nouvelle note</span></div><div class="card-body"><div class="form-grid">
+      <div class="form-group"><label>Élève</label><select id="n-el" class="form-control">${eo}</select></div>
+      <div class="form-group"><label>Matière</label><select id="n-mt" class="form-control">${mo}</select></div>
+      <div class="form-group"><label>Intitulé</label><input id="n-it" class="form-control" placeholder="DS, Contrôle, TP..."></div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label>Note /20</label><input id="n-vl" class="form-control" type="number" min="0" max="20" step="0.5"></div>
+        <div class="form-group"><label>Coefficient</label><input id="n-cf" class="form-control" type="number" min="1" max="5" value="1"></div>
+      </div>
+      <div class="form-group"><label>Date</label><input id="n-dt" class="form-control" type="date" value="${td()}"></div>
+      <button class="btn btn-primary" onclick="saveNote()">Enregistrer</button>
+    </div></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Notes récentes</span></div><div class="table-wrap" id="nr">${noteRec()}</div></div>
+  </div>`;
+}
+function noteRec(){return`<table><thead><tr><th>Élève</th><th>Mat.</th><th>Note</th><th>Date</th><th></th></tr></thead><tbody>
+  ${notes.filter(n=>n.prof===U.login).slice(0,10).map(n=>`<tr><td class="td-bold">${uName(n.eleveLogin)}</td><td>${matCode(n.matiereId)}</td><td>${ac(n.valeur)}</td><td style="color:var(--text2)">${n.date}</td><td><button class="btn btn-danger btn-sm" onclick="delNote(${n.id})">✕</button></td></tr>`).join('')}
+</tbody></table>`;}
+async function saveNote(){
+  const el=document.getElementById('n-el').value,mt=parseInt(document.getElementById('n-mt').value),
+    it=document.getElementById('n-it').value.trim(),vl=parseFloat(document.getElementById('n-vl').value),
+    cf=parseInt(document.getElementById('n-cf').value)||1,dt=document.getElementById('n-dt').value;
+  if(!el||!mt||isNaN(vl)||vl<0||vl>20){toast('Données invalides','⚠️');return;}
+  await SB.post('notes',{eleve_login:el,matiere_id:mt,intitule:it,valeur:vl,coef:cf,date:dt,prof_login:U.login});
+  await reload();document.getElementById('nr').innerHTML=noteRec();toast('Note enregistrée','📝');
+}
+async function delNote(id){await SB.del('notes',id);await reload();document.getElementById('nr').innerHTML=noteRec();}
+
+function pgSaisieAbs(el){
+  const eo=users.filter(u=>u.role==='eleve').map(u=>`<option value="${u.login}">${u.prenom} ${u.nom}</option>`).join('');
+  const mo=matieres.map(m=>`<option value="${m.id}">${m.nom}</option>`).join('');
+  el.innerHTML=`<div class="page-header"><div class="page-title">Saisie des absences</div></div>
+  <div class="grid-2" style="align-items:start">
+    <div class="card"><div class="card-header"><span class="card-title">Signaler une absence</span></div><div class="card-body"><div class="form-grid">
+      <div class="form-group"><label>Élève</label><select id="a-el" class="form-control">${eo}</select></div>
+      <div class="form-group"><label>Matière</label><select id="a-mt" class="form-control">${mo}</select></div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label>Date</label><input id="a-dt" class="form-control" type="date" value="${td()}"></div>
+        <div class="form-group"><label>Heure</label><input id="a-he" class="form-control" placeholder="08h00"></div>
+      </div>
+      <div class="form-group"><label>Durée (h)</label><input id="a-dr" class="form-control" type="number" min="1" max="8" value="1"></div>
+      <button class="btn btn-primary" onclick="saveAbs()">Enregistrer</button>
+    </div></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Absences récentes</span></div><div class="table-wrap" id="ar">${absRec()}</div></div>
+  </div>`;
+}
+function absRec(){return`<table><thead><tr><th>Élève</th><th>Date</th><th>Durée</th><th>Statut</th></tr></thead><tbody>
+  ${absences.slice(0,8).map(a=>`<tr><td class="td-bold">${uName(a.eleveLogin)}</td><td>${a.date}</td><td>${a.duree}h</td><td><span class="badge ${a.justifie?'badge-green':'badge-red'}">${a.justifie?'Justifiée':'Non just.'}</span></td></tr>`).join('')}</tbody></table>`;}
+async function saveAbs(){
+  const el=document.getElementById('a-el').value,mt=parseInt(document.getElementById('a-mt').value)||null,
+    dt=document.getElementById('a-dt').value,he=document.getElementById('a-he').value.trim(),dr=parseInt(document.getElementById('a-dr').value)||1;
+  if(!el||!dt){toast('Données manquantes','⚠️');return;}
+  await SB.post('absences',{eleve_login:el,matiere_id:mt,date:dt,heure:he,duree:dr,justifie:false,motif:''});
+  await reload();document.getElementById('ar').innerHTML=absRec();toast('Absence enregistrée','📋');
+}
+
+/* ── APPEL ── */
+function pgAppel(el){
+  const eleves=users.filter(u=>u.role==='eleve');
+  const co=classes.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
+  const mo=matieres.map(m=>`<option value="${m.id}">${m.nom}</option>`).join('');
+  // état local de présence
+  window._appelState={};
+  eleves.forEach(e=>{window._appelState[e.login]='present';});
+  el.innerHTML=`<div class="page-header"><div class="page-title">📣 Faire l'appel</div></div>
+  <div class="grid-2" style="align-items:start">
+    <div class="card"><div class="card-header"><span class="card-title">Paramètres</span></div><div class="card-body"><div class="form-grid">
+      <div class="form-group"><label>Classe</label><select id="ap-cl" class="form-control" onchange="refreshAppelList()">${co}</select></div>
+      <div class="form-group"><label>Matière</label><select id="ap-mt" class="form-control">${mo}</select></div>
+      <div class="form-grid form-grid-2">
+        <div class="form-group"><label>Date</label><input id="ap-dt" class="form-control" type="date" value="${td()}"></div>
+        <div class="form-group"><label>Heure</label><input id="ap-he" class="form-control" placeholder="08h00"></div>
+      </div>
+      <div style="padding:10px;background:var(--yellow-bg);border-radius:8px;border:1px solid #FDE68A">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500">
+          <input type="checkbox" id="ap-pa" style="width:15px;height:15px"> Professeur absent (cours annulé)
+        </label>
+        <div id="ap-remp-row" style="margin-top:8px;display:none">
+          <label style="font-size:11.5px;color:var(--text2);margin-bottom:3px;display:block">Professeur remplaçant</label>
+          <select id="ap-remp" class="form-control">${users.filter(u=>u.role==='prof').map(u=>`<option value="${u.login}">${u.prenom} ${u.nom}</option>`).join('')}</select>
+        </div>
+      </div>
+    </div></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Liste des élèves</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick="setAll('present')">Tous présents</button>
+        <button class="btn btn-danger btn-sm" onclick="setAll('absent')">Tous absents</button>
+      </div>
+    </div>
+    <div class="card-body" id="appel-list">${buildAppelList(parseInt(document.getElementById('ap-cl')?.value)||classes[0]?.id)}</div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border)">
+      <button class="btn btn-primary" style="width:100%" onclick="validerAppel()">✅ Valider l'appel</button>
+    </div>
+    </div>
+  </div>`;
+  document.getElementById('ap-pa').addEventListener('change',function(){
+    document.getElementById('ap-remp-row').style.display=this.checked?'block':'none';
+  });
+}
+function buildAppelList(cid){
+  const eleves=users.filter(u=>u.role==='eleve'&&u.classeId===cid);
+  if(!eleves.length)return`<div style="text-align:center;color:var(--text3);padding:20px">Aucun élève dans cette classe</div>`;
+  return eleves.map(e=>{
+    const state=window._appelState[e.login]||'present';
+    return`<div class="appel-row">
+      <div style="width:30px;height:30px;border-radius:50%;background:${e.color}22;color:${e.color};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">${e.prenom[0]+e.nom[0]}</div>
+      <span class="appel-name">${e.prenom} ${e.nom}</span>
+      <button class="appel-btn ${state==='present'?'present':'inactive'}" onclick="setAppelState('${e.login}','present')">✓ Présent</button>
+      <button class="appel-btn ${state==='retard'?'retard':'inactive'}" onclick="setAppelState('${e.login}','retard')">⏰ Retard</button>
+      <button class="appel-btn ${state==='absent'?'absent':'inactive'}" onclick="setAppelState('${e.login}','absent')">✗ Absent</button>
+    </div>`;
+  }).join('');
+}
+function refreshAppelList(){const cid=parseInt(document.getElementById('ap-cl').value);document.getElementById('appel-list').innerHTML=buildAppelList(cid);}
+function setAppelState(login,state){window._appelState[login]=state;const cid=parseInt(document.getElementById('ap-cl').value);document.getElementById('appel-list').innerHTML=buildAppelList(cid);}
+function setAll(state){Object.keys(window._appelState).forEach(k=>window._appelState[k]=state);const cid=parseInt(document.getElementById('ap-cl').value);document.getElementById('appel-list').innerHTML=buildAppelList(cid);}
+async function validerAppel(){
+  const cid=parseInt(document.getElementById('ap-cl').value),mid=parseInt(document.getElementById('ap-mt').value)||null,
+    dt=document.getElementById('ap-dt').value,he=document.getElementById('ap-he').value.trim(),
+    pa=document.getElementById('ap-pa').checked,remp=pa?document.getElementById('ap-remp').value:null;
+  const [appelR]=await SB.post('appel',{classe_id:cid,matiere_id:mid,date:dt,heure:he,fait_par:U.login,prof_absent:pa,prof_remplacant:remp||null});
+  const appelId=appelR.id;
+  const lignes=users.filter(u=>u.role==='eleve'&&u.classeId===cid).map(e=>({appel_id:appelId,eleve_login:e.login,present:window._appelState[e.login]!=='absent',retard:window._appelState[e.login]==='retard'}));
+  // Enregistrer les présences
+  for(const l of lignes)await SB.post('appel_eleve',l);
+  // Créer les absences pour les absents
+  const absents=lignes.filter(l=>!l.present);
+  for(const a of absents){await SB.post('absences',{eleve_login:a.eleve_login,matiere_id:mid,date:dt,heure:he,duree:1,justifie:false,motif:''});}
+  await reload();toast(`Appel validé — ${absents.length} absence(s) enregistrée(s)`,'📣');
+}
+
+/* ══════════════════════════════════════════════════
+   ÉLÈVE
+══════════════════════════════════════════════════ */
+function pgMesNotes(el){
+  const mn=notes.filter(n=>n.eleveLogin===U.login),mg=moy(mn);
+  const bm=matieres.map(mat=>{const ns=mn.filter(n=>n.matiereId===mat.id);return{mat,ns,mv:moy(ns)}}).filter(x=>x.ns.length);
+  el.innerHTML=`<div class="page-header"><div class="page-title">Mes notes</div><div class="page-subtitle">Moyenne générale : ${mg!==null?`<strong>${mg.toFixed(2)}/20</strong>`:'—'}</div></div>
+  ${bm.map(({mat,ns,mv})=>`<div class="card" style="margin-bottom:12px">
+    <div class="card-header"><div style="display:flex;align-items:center;gap:7px"><span style="width:8px;height:8px;border-radius:50%;background:${mat.couleur};display:inline-block"></span><span class="card-title">${mat.nom}</span></div>
+    <div style="display:flex;align-items:center;gap:6px"><span style="font-size:11.5px;color:var(--text2)">Moyenne :</span>${ac(mv)}</div></div>
+    <div class="table-wrap"><table><thead><tr><th>Intitulé</th><th>Note /20</th><th>Coef.</th><th>Date</th></tr></thead><tbody>
+    ${ns.map(n=>`<tr><td class="td-bold">${n.intitule||'—'}</td><td>${ac(n.valeur)}</td><td style="color:var(--text2)">${n.coef}</td><td style="color:var(--text2)">${n.date}</td></tr>`).join('')}
+    </tbody></table></div></div>`).join('')}`;
+}
+function pgMesAbs(el){
+  const ma=absences.filter(a=>a.eleveLogin===U.login),tot=ma.reduce((s,a)=>s+a.duree,0);
+  el.innerHTML=`<div class="page-header"><div class="page-title">Mes absences</div></div>
+  <div class="grid-3" style="margin-bottom:14px">${sc('📋','Total',ma.length,'var(--yellow-bg)','var(--yellow)')}${sc('🕐','Heures',tot+'h','var(--red-bg)','var(--red)')}${sc('✅','Justifiées',ma.filter(a=>a.justifie).length,'var(--green-bg)','var(--green)')}</div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Heure</th><th>Durée</th><th>Matière</th><th>Statut</th><th>Motif</th></tr></thead><tbody>
+  ${ma.length?ma.map(a=>`<tr><td class="td-bold">${a.date}</td><td>${a.heure||'—'}</td><td>${a.duree}h</td><td>${matCode(a.matiereId)}</td><td><span class="badge ${a.justifie?'badge-green':'badge-red'}">${a.justifie?'Justifiée':'Non just.'}</span></td><td style="color:var(--text2)">${a.motif||'—'}</td></tr>`).join(''):'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">Aucune absence 🎉</td></tr>'}
+  </tbody></table></div></div>`;
+}
+function pgMesPun(el){
+  const mp=punitions.filter(p=>p.eleveLogin===U.login);
+  el.innerHTML=`<div class="page-header"><div class="page-title">Mes punitions</div></div>
+  <div class="grid-3" style="margin-bottom:14px">${sc('⚠️','Total',mp.length,'var(--rose-bg)','var(--rose)')}${sc('🔴','Actives',mp.filter(p=>!p.levee).length,'var(--red-bg)','var(--red)')}${sc('✅','Levées',mp.filter(p=>p.levee).length,'var(--green-bg)','var(--green)')}</div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Type</th><th>Motif</th><th>Détail</th><th>Date</th><th>Statut</th></tr></thead><tbody>
+  ${mp.length?mp.map(p=>`<tr><td>${punBadge(p.type)}</td><td style="max-width:180px;font-size:11.5px">${p.motif||'—'}</td><td style="color:var(--text2);font-size:11.5px">${p.detail||'—'}</td><td>${p.date}</td><td><span class="badge ${p.levee?'badge-green':'badge-red'}">${p.levee?'Levée':'Active'}</span></td></tr>`).join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">Aucune punition 🎉</td></tr>'}
+  </tbody></table></div></div>`;
+}
+
+/* ══════════════════════════════════════════════════
+   PARENT
+══════════════════════════════════════════════════ */
+function enfantSelector(callback){
+  const enfants=mesEnfants();
+  if(!enfants.length)return`<div style="text-align:center;padding:40px;color:var(--text3)">Aucun enfant associé. <button class="btn btn-primary btn-sm" onclick="navigate('inscrire_eleve')" style="margin-left:8px">Inscrire un élève</button></div>`;
+  let sel=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px"><label style="font-size:13px;color:var(--text2)">Enfant :</label>
+    <select class="form-control" style="width:200px" id="p-enfant" onchange="${callback}">${enfants.map(e=>`<option value="${e.login}">${e.prenom} ${e.nom}</option>`).join('')}</select></div>`;
+  return sel;
+}
+function pgEnfantsNotes(el){
+  const enfants=mesEnfants();if(!enfants.length){el.innerHTML=`<div class="page-header"><div class="page-title">Notes de mes enfants</div></div><div class="card"><div class="card-body" style="text-align:center;padding:40px;color:var(--text3)">Aucun enfant associé</div></div>`;return;}
+  const eLogin=enfants[0].login;
+  const renderNotes=login=>{
+    const mn=notes.filter(n=>n.eleveLogin===login),mg=moy(mn);
+    const bm=matieres.map(mat=>{const ns=mn.filter(n=>n.matiereId===mat.id);return{mat,ns,mv:moy(ns)}}).filter(x=>x.ns.length);
+    return`<div style="font-size:13px;color:var(--text2);margin-bottom:14px">Moyenne générale : <strong>${mg!==null?mg.toFixed(2)+'/20':'—'}</strong></div>
+    ${bm.map(({mat,ns,mv})=>`<div class="card" style="margin-bottom:11px">
+      <div class="card-header"><span class="card-title">${mat.nom}</span><div style="display:flex;align-items:center;gap:6px"><span style="font-size:11.5px;color:var(--text2)">Moy :</span>${ac(mv)}</div></div>
+      <div class="table-wrap"><table><thead><tr><th>Intitulé</th><th>Note</th><th>Coef.</th><th>Date</th></tr></thead><tbody>
+      ${ns.map(n=>`<tr><td class="td-bold">${n.intitule||'—'}</td><td>${ac(n.valeur)}</td><td>${n.coef}</td><td style="color:var(--text2)">${n.date}</td></tr>`).join('')}
+      </tbody></table></div></div>`).join('')}`;
+  };
+  el.innerHTML=`<div class="page-header"><div class="page-title">Notes de mes enfants</div></div>
+    ${enfantSelector('pgEnfantsNotesRefresh()')}
+    <div id="p-notes-content">${renderNotes(eLogin)}</div>`;
+  window.pgEnfantsNotesRefresh=()=>{document.getElementById('p-notes-content').innerHTML=renderNotes(document.getElementById('p-enfant').value);};
+}
+function pgEnfantsAbs(el){
+  const enfants=mesEnfants();if(!enfants.length){el.innerHTML=`<div class="page-header"><div class="page-title">Absences</div></div><div class="card"><div class="card-body" style="text-align:center;padding:40px;color:var(--text3)">Aucun enfant associé</div></div>`;return;}
+  const eLogin=enfants[0].login;
+  const renderAbs=login=>{
+    const ma=absences.filter(a=>a.eleveLogin===login),tot=ma.reduce((s,a)=>s+a.duree,0);
+    return`<div class="grid-3" style="margin-bottom:14px">${sc('📋','Absences',ma.length,'var(--yellow-bg)','var(--yellow)')}${sc('🕐','Heures',tot+'h','var(--red-bg)','var(--red)')}${sc('✅','Justifiées',ma.filter(a=>a.justifie).length,'var(--green-bg)','var(--green)')}</div>
+    <div class="card"><div class="card-header"><span class="card-title">Détail des absences</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Heure</th><th>Durée</th><th>Matière</th><th>Statut</th><th>Motif</th></tr></thead><tbody>
+    ${ma.length?ma.map(a=>`<tr><td class="td-bold">${a.date}</td><td>${a.heure||'—'}</td><td>${a.duree}h</td><td>${matCode(a.matiereId)}</td><td><span class="badge ${a.justifie?'badge-green':'badge-red'}">${a.justifie?'Justifiée':'Non just.'}</span></td><td style="color:var(--text2)">${a.motif||'—'}</td></tr>`).join(''):'<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--text3)">Aucune</td></tr>'}
+    </tbody></table></div></div>`;
+  };
+  el.innerHTML=`<div class="page-header"><div class="page-title">Absences de mes enfants</div></div>
+    ${enfantSelector('pgEnfantsAbsRefresh()')}
+    <div id="p-abs-content">${renderAbs(eLogin)}</div>`;
+  window.pgEnfantsAbsRefresh=()=>{document.getElementById('p-abs-content').innerHTML=renderAbs(document.getElementById('p-enfant').value);};
+}
+function pgEnfantsPun(el){
+  const enfants=mesEnfants();if(!enfants.length){el.innerHTML=`<div class="page-header"><div class="page-title">Punitions</div></div><div class="card"><div class="card-body" style="text-align:center;padding:40px;color:var(--text3)">Aucun enfant associé</div></div>`;return;}
+  const eLogin=enfants[0].login;
+  const renderPun=login=>{
+    const mp=punitions.filter(p=>p.eleveLogin===login);
+    return`<div class="card"><div class="table-wrap"><table><thead><tr><th>Type</th><th>Motif</th><th>Détail</th><th>Date</th><th>Statut</th></tr></thead><tbody>
+    ${mp.length?mp.map(p=>`<tr><td>${punBadge(p.type)}</td><td style="font-size:11.5px">${p.motif||'—'}</td><td style="color:var(--text2);font-size:11.5px">${p.detail||'—'}</td><td>${p.date}</td><td><span class="badge ${p.levee?'badge-green':'badge-red'}">${p.levee?'Levée':'Active'}</span></td></tr>`).join(''):'<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--text3)">Aucune punition 🎉</td></tr>'}
+    </tbody></table></div></div>`;
+  };
+  el.innerHTML=`<div class="page-header"><div class="page-title">Punitions de mes enfants</div></div>
+    ${enfantSelector('pgEnfantsPunRefresh()')}
+    <div id="p-pun-content">${renderPun(eLogin)}</div>`;
+  window.pgEnfantsPunRefresh=()=>{document.getElementById('p-pun-content').innerHTML=renderPun(document.getElementById('p-enfant').value);};
+}
+function pgEnfantsEdt(el){
+  const enfants=mesEnfants();if(!enfants.length){el.innerHTML=`<div class="page-header"><div class="page-title">Emploi du temps</div></div><div class="card"><div class="card-body" style="text-align:center;padding:40px;color:var(--text3)">Aucun enfant associé</div></div>`;return;}
+  const eLogin=enfants[0].login;
+  const renderEdt=login=>{const u=users.find(x=>x.login===login);const cid=u?.classeId||1;return buildEdtGrid(cid,false);};
+  el.innerHTML=`<div class="page-header"><div class="page-title">Emploi du temps</div></div>
+    ${enfantSelector('pgEnfantsEdtRefresh()')}
+    <div id="p-edt-content">${renderEdt(eLogin)}</div>`;
+  window.pgEnfantsEdtRefresh=()=>{document.getElementById('p-edt-content').innerHTML=renderEdt(document.getElementById('p-enfant').value);};
+}
+function pgInscrireEleve(el){
+  el.innerHTML=`<div class="page-header"><div class="page-title">➕ Inscrire un élève</div>
+    <div class="page-subtitle">Associez un compte élève existant à votre espace parent, ou créez un nouveau compte élève.</div></div>
+  <div class="grid-2" style="align-items:start">
+    <div class="card"><div class="card-header"><span class="card-title">Lier un compte existant</span></div><div class="card-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Identifiant de l'élève</label>
+          <select id="ins-login" class="form-control">
+            ${users.filter(u=>u.role==='eleve'&&!parentLinks.find(l=>l.parent_login===U.login&&l.eleve_login===u.login)).map(u=>`<option value="${u.login}">${u.prenom} ${u.nom} (${classes.find(c=>c.id===u.classeId)?.nom||'?'})</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="lierEleve()">Associer cet élève</button>
+      </div>
+    </div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Créer et lier un nouveau compte élève</span></div><div class="card-body">
+      <div class="form-grid">
+        <div class="form-grid form-grid-2">
+          <div class="form-group"><label>Prénom</label><input id="ins-pr" class="form-control"></div>
+          <div class="form-group"><label>Nom</label><input id="ins-nm" class="form-control"></div>
+        </div>
+        <div class="form-group"><label>Identifiant</label><input id="ins-lg" class="form-control" placeholder="prenom.nom"></div>
+        <div class="form-group"><label>Email de l'élève</label><input id="ins-em" class="form-control" type="email"></div>
+        <div class="form-group"><label>Mot de passe</label><input id="ins-pw" class="form-control" type="password" value="password123"></div>
+        <div class="form-group"><label>Classe</label><select id="ins-cl" class="form-control">
+          ${classes.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('')}
+        </select></div>
+        <button class="btn btn-primary" onclick="creerEtLierEleve()">Créer et associer</button>
+      </div>
+    </div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><div class="card-header"><span class="card-title">Mes enfants associés</span></div>
+  <div class="table-wrap"><table><thead><tr><th>Élève</th><th>Classe</th><th></th></tr></thead><tbody>
+  ${mesEnfants().map(e=>{const cl=classes.find(c=>c.id===e.classeId);return`<tr><td class="td-bold">${e.prenom} ${e.nom}</td><td>${cl?cl.nom:'—'}</td><td><button class="btn btn-danger btn-sm" onclick="delierEleve('${e.login}')">Délier</button></td></tr>`;}).join('')||'<tr><td colspan="3" style="text-align:center;padding:16px;color:var(--text3)">Aucun enfant associé</td></tr>'}
+  </tbody></table></div></div>`;
+}
+async function lierEleve(){
+  const login=document.getElementById('ins-login').value;if(!login){toast('Sélectionnez un élève','⚠️');return;}
+  if(parentLinks.find(l=>l.parent_login===U.login&&l.eleve_login===login)){toast('Déjà associé','⚠️');return;}
+  await SB.post('parent_eleve',{parent_login:U.login,eleve_login:login});
+  await reload();pgInscrireEleve(document.getElementById('pg-inscrire_eleve'));toast('Élève associé !','✅');
+}
+async function creerEtLierEleve(){
+  const pr=document.getElementById('ins-pr').value.trim(),nm=document.getElementById('ins-nm').value.trim(),
+    lg=document.getElementById('ins-lg').value.trim(),em=document.getElementById('ins-em').value.trim(),
+    pw=document.getElementById('ins-pw').value,cl=parseInt(document.getElementById('ins-cl').value)||null;
+  if(!pr||!nm||!lg||!pw){toast('Champs manquants','⚠️');return;}
+  if(users.find(u=>u.login===lg)){toast('Identifiant déjà utilisé','⚠️');return;}
+  const hash=await sha256(pw);
+  await SB.post('users',{login:lg,nom:nm,prenom:pr,role:'eleve',classe_id:cl,email:em||null,color:'#16A34A',password_hash:hash});
+  await SB.post('parent_eleve',{parent_login:U.login,eleve_login:lg});
+  await reload();pgInscrireEleve(document.getElementById('pg-inscrire_eleve'));toast('Élève créé et associé !','✅');
+}
+async function delierEleve(login){
+  if(!confirm('Délier cet élève de votre compte ?'))return;
+  const link=parentLinks.find(l=>l.parent_login===U.login&&l.eleve_login===login);
+  if(link)await SB.del('parent_eleve',link.id);
+  await reload();pgInscrireEleve(document.getElementById('pg-inscrire_eleve'));toast('Délié','🗑️');
+}
+
+/* ══════════════════════════════════════════════════
+   VIE SCOLAIRE
+══════════════════════════════════════════════════ */
+function pgVsAbsences(el){pgAbsV(el);}
+
+async function pgVsAppel(el){
+  let appels=[];
+  try{appels=await SB.get('appel','select=*&order=created_at.desc');}catch(e){}
+  el.innerHTML=`<div class="page-header"><div class="page-title">📣 Registre des appels</div></div>
+  <div class="card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Heure</th><th>Classe</th><th>Matière</th><th>Fait par</th><th>Prof absent</th><th>Absents</th></tr></thead>
+  <tbody>${appels.length?appels.map(a=>{
+    const cl=classes.find(c=>c.id===a.classe_id),mat=matieres.find(m=>m.id===a.matiere_id),auteur=users.find(u=>u.login===a.fait_par);
+    return`<tr><td class="td-bold">${a.date}</td><td>${a.heure||'—'}</td><td>${cl?cl.nom:'?'}</td><td>${mat?mat.nom:'—'}</td><td style="color:var(--text2)">${auteur?auteur.prenom+' '+auteur.nom:'?'}</td>
+      <td>${a.prof_absent?`<span class="badge badge-red">Absent</span>`:'<span class="badge badge-green">Présent</span>'}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="voirAbsentsAppel(${a.id})">Voir</button></td></tr>`;}).join(''):'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">Aucun appel enregistré</td></tr>'}
+  </tbody></table></div></div>`;
+}
+async function voirAbsentsAppel(appelId){
+  let lignes=[];
+  try{lignes=await SB.get('appel_eleve',`appel_id=eq.${appelId}`);}catch(e){}
+  const absent=lignes.filter(l=>!l.present),retard=lignes.filter(l=>l.retard);
+  showModal('Détail de l\'appel',`<div style="margin-bottom:12px"><strong>Absents (${absent.length}) :</strong><br>
+    ${absent.length?absent.map(l=>`<span class="badge badge-red" style="margin:2px">${uName(l.eleve_login)}</span>`).join(''):'<span style="color:var(--text3)">Aucun</span>'}
+  </div><div><strong>Retards (${retard.length}) :</strong><br>
+    ${retard.length?retard.map(l=>`<span class="badge badge-yellow" style="margin:2px">${uName(l.eleve_login)}</span>`).join(''):'<span style="color:var(--text3)">Aucun</span>'}
+  </div>`,[]);
+}
+
+function pgVsProfAbsent(el){
+  el.innerHTML=`<div class="page-header"><div class="page-title">🏥 Signaler un professeur absent</div>
+    <div class="page-subtitle">Signalez l'absence d'un prof et désignez un remplaçant ou annulez le cours.</div></div>
+  <div class="grid-2" style="align-items:start">
+    <div class="card"><div class="card-header"><span class="card-title">Nouveau signalement</span></div><div class="card-body"><div class="form-grid">
+      <div class="form-group"><label>Professeur absent</label>
+        <select id="pa-prof" class="form-control">${users.filter(u=>u.role==='prof').map(u=>`<option value="${u.login}">${u.prenom} ${u.nom}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label>Date</label><input id="pa-dt" class="form-control" type="date" value="${td()}"></div>
+      <div class="form-group"><label>Heure de début</label><input id="pa-he" class="form-control" placeholder="08h00"></div>
+      <div class="form-group"><label>Professeur remplaçant (optionnel)</label>
+        <select id="pa-remp" class="form-control"><option value="">— aucun remplaçant —</option>${users.filter(u=>u.role==='prof').map(u=>`<option value="${u.login}">${u.prenom} ${u.nom}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label>Classes concernées</label>
+        <select id="pa-cl" class="form-control">${classes.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('')}</select>
+      </div>
+      <button class="btn btn-primary" onclick="signalerProfAbsent()">Enregistrer l'absence</button>
+    </div></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Absences de profs récentes</span></div>
+    <div id="prof-abs-list">
+      <div style="padding:20px;text-align:center;color:var(--text3)">Chargement…</div>
+    </div></div>
+  </div>`;
+  loadProfAbsList();
+}
+async function loadProfAbsList(){
+  try{
+    const appels=await SB.get('appel','select=*&prof_absent=eq.true&order=created_at.desc');
+    document.getElementById('prof-abs-list').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Prof</th><th>Classe</th><th>Remplaçant</th></tr></thead><tbody>
+    ${appels.length?appels.slice(0,8).map(a=>{
+      const cl=classes.find(c=>c.id===a.classe_id),auteur=users.find(u=>u.login===a.fait_par),remp=users.find(u=>u.login===a.prof_remplacant);
+      return`<tr><td class="td-bold">${a.date}</td><td style="color:var(--text2)">${auteur?auteur.prenom+' '+auteur.nom:'?'}</td><td>${cl?cl.nom:'?'}</td><td>${remp?remp.prenom+' '+remp.nom:'<span class="badge badge-yellow">Cours annulé</span>'}</td></tr>`;}).join(''):'<tr><td colspan="4" style="text-align:center;padding:16px;color:var(--text3)">Aucun signalement</td></tr>'}
+    </tbody></table></div>`;
+  }catch(e){document.getElementById('prof-abs-list').innerHTML=`<div style="padding:16px;color:var(--text2)">Chargement…</div>`;}
+}
+async function signalerProfAbsent(){
+  const prof=document.getElementById('pa-prof').value,dt=document.getElementById('pa-dt').value,
+    he=document.getElementById('pa-he').value.trim(),remp=document.getElementById('pa-remp').value||null,
+    cid=parseInt(document.getElementById('pa-cl').value);
+  if(!prof||!dt){toast('Champs manquants','⚠️');return;}
+  await SB.post('appel',{classe_id:cid,matiere_id:null,date:dt,heure:he,fait_par:U.login,prof_absent:true,prof_remplacant:remp});
+  // Envoyer un message aux élèves de la classe
+  const elevesClasse=users.filter(u=>u.role==='eleve'&&u.classeId===cid);
+  const profU=users.find(u=>u.login===prof);const rempU=remp?users.find(u=>u.login===remp):null;
+  const corps=rempU?`Le professeur ${profU?profU.prenom+' '+profU.nom:prof} est absent le ${dt}. Il sera remplacé par ${rempU.prenom+' '+rempU.nom}.`
+    :`Le professeur ${profU?profU.prenom+' '+profU.nom:prof} est absent le ${dt}. Le cours est annulé.`;
+  for(const e of elevesClasse)await SB.post('messages',{de:U.login,a:e.login,sujet:`Absence professeur — ${dt}`,corps,date:dt,lu:false});
+  await reload();loadProfAbsList();toast(`Absence signalée + ${elevesClasse.length} élève(s) notifié(s)`,'🏥');
+}
+
+/* ══ START ══ */
+init();
+</script>
+</body>
+</html>
